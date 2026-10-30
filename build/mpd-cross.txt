@@ -1,0 +1,21 @@
+[binaries]
+c = '/opt/openwrt-sdk/staging_dir/toolchain-arm_cortex-a9_gcc-13.3.0_musl_eabi/bin/arm-openwrt-linux-muslgnueabi-gcc'
+cpp = '/opt/openwrt-sdk/staging_dir/toolchain-arm_cortex-a9_gcc-13.3.0_musl_eabi/bin/arm-openwrt-linux-muslgnueabi-g++'
+ar = '/opt/openwrt-sdk/staging_dir/toolchain-arm_cortex-a9_gcc-13.3.0_musl_eabi/bin/arm-openwrt-linux-muslgnueabi-ar'
+strip = '/opt/openwrt-sdk/staging_dir/toolchain-arm_cortex-a9_gcc-13.3.0_musl_eabi/bin/arm-openwrt-linux-muslgnueabi-strip'
+pkg-config = '/opt/openwrt-sdk/staging_dir/host/bin/pkg-config.real'
+
+[host_machine]
+system = 'linux'
+cpu_family = 'arm'
+cpu = 'cortex-a9'
+endian = 'little'
+
+[properties]
+needs_exe_wrapper = false
+
+[built-in options]
+c_args = ['-Os', '-I/opt/openwrt-sdk/staging_dir/target-arm_cortex-a9_musl_eabi/usr/include']
+cpp_args = ['-Os', '-I/opt/openwrt-sdk/staging_dir/target-arm_cortex-a9_musl_eabi/usr/include']
+c_link_args = ['-L/opt/openwrt-sdk/staging_dir/target-arm_cortex-a9_musl_eabi/usr/lib']
+cpp_link_args = ['-L/opt/openwrt-sdk/staging_dir/target-arm_cortex-a9_musl_eabi/usr/lib']

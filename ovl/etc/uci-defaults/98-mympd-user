@@ -1,0 +1,7 @@
+#!/bin/sh
+# Create the myMPD system user before services start.
+grep -q '^mympd:' /etc/passwd || \
+	echo 'mympd:x:89:89:mympd:/var/lib/mympd:/bin/false' >> /etc/passwd
+grep -q '^mympd:' /etc/group || \
+	echo 'mympd:x:89:' >> /etc/group
+exit 0

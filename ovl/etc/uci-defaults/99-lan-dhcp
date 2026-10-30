@@ -1,0 +1,9 @@
+#!/bin/sh
+# First-boot default: make the LAN bridge a DHCP client so the device takes
+# an address from the main router (this image has no local DHCP server).
+uci -q set network.lan.proto='dhcp'
+uci -q delete network.lan.ipaddr
+uci -q delete network.lan.netmask
+uci -q delete network.lan.gateway
+uci -q commit network
+exit 0

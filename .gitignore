@@ -1,0 +1,5 @@
+*.trx
+*.ipk
+*.tar.*
+*.log
+/bin/
