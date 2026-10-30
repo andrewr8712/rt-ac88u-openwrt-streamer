@@ -20,6 +20,6 @@ iowrite_mbs,307.43
 ioread_mbs,396.20
 iowrite_mbs,51.38
 ioread_mbs,88.28
-cifs_file,/mnt/music/Supertramp - 1977 - Even In The Quietest Moments... (Remastered 2026) (24bit-192kHz)/07 Fool's Overture.flac
+cifs_file,/mnt/music/<album>/<track>.flac
 ioread_mbs,13.03
 temp_after_mc,73836

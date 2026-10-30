@@ -7,11 +7,11 @@ USE_PROCD=1
 PROG=/usr/bin/mympd
 
 start_service() {
-	mkdir -p /var/lib/mympd /var/cache/mympd
-	chown mympd:mympd /var/lib/mympd /var/cache/mympd 2>/dev/null
+	mkdir -p /etc/mympd /var/cache/mympd
+	chown mympd:mympd /etc/mympd /var/cache/mympd 2>/dev/null
 
 	procd_open_instance
-	procd_set_param command "$PROG" -s -w /var/lib/mympd -a /var/cache/mympd
+	procd_set_param command "$PROG" -s -w /etc/mympd -a /var/cache/mympd
 	procd_set_param user mympd
 	procd_set_param group mympd
 	procd_set_param respawn

@@ -12,9 +12,9 @@
 set -e
 
 # ---- SMB library -----------------------------------------------------------
-SMB_SERVER="10.0.0.216"        # NAS / PC address
+SMB_SERVER="192.168.1.10"        # NAS / PC address
 SMB_SHARE="public"             # share name
-SMB_USER="andrew"
+SMB_USER="USER"
 SMB_PASS="CHANGE_ME"           # <-- set this
 MOUNT_POINT="/mnt/music"
 # ---------------------------------------------------------------------------
@@ -52,7 +52,7 @@ audio_output {
     name        "Topping DX5 II"
     device      "hw:0,0"      # USB DAC is card 0 (no onboard sound)
     mixer_type  "none"        # use the DAC's own volume knob
-    dop         "yes"         # DSD-over-PCM (DSD64/128 on Topping)
+    dop         "yes"         # DSD-over-PCM (DSD64/128/256 on Topping)
 }
 EOF
 
@@ -67,7 +67,7 @@ sed -i 's/^mympd:x:89:/mympd:x:91:/' /etc/group
 
 mkdir -p /etc/mympd/config /etc/mympd/state /var/cache/mympd
 printf 'false\n' > /etc/mympd/config/ssl           # plain HTTP on :8080
-printf '3\n' > /etc/mympd/config/loglevel           # 3 = info, less noise than default
+printf '4\n' > /etc/mympd/config/loglevel           # 4 = warn (keep warnings; 3 = errors only)
 printf '%s\n' "$MOUNT_POINT" > /etc/mympd/state/music_directory
 chown -R mympd:mympd /etc/mympd
 chown -R mympd:mympd /var/cache/mympd

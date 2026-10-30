@@ -32,7 +32,7 @@ upload the `.trx`. Alternatively use the ASUS Firmware Restoration tool.
 | Type | Desktop DAC / headphone amp, dual ES9039Q2M |
 | Input | USB (UAC2 class-compliant), plus coax/optical/Bluetooth |
 | PCM | up to 768 kHz |
-| DSD | up to DSD512 (native); DoP for DSD64/128 |
+| DSD | up to DSD512 (native); DoP verified for DSD64/128/256 |
 | Power | Mains-powered (not USB bus powered) |
 
 Because it is UAC2 class-compliant it works with the kernel's `snd-usb-audio`
@@ -43,5 +43,6 @@ ALSA **card 0**, so MPD's output is `device "hw:0,0"`.
 own volume control. For strict bit-perfect output, run the DAC at 0 dB / fixed
 volume and attenuate downstream.
 
-USB 2.0 is sufficient for UAC2 (including DoP at 352.8 kHz). The USB 3.0 port
-works too.
+Both ports are USB host ports and USB 2.0 bandwidth is sufficient for UAC2.
+On this unit, however, the **rear USB 2.0** port produced `error -71`
+re-enumeration; the **front USB 3.0** port was stable.

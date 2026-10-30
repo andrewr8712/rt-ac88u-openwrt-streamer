@@ -37,8 +37,10 @@ cat /proc/asound/cards
 
 - `dop "yes"` must be present in the `audio_output` block, and `mixer_type`
   must be `"none"`.
-- DoP needs the DAC to accept 176.4 kHz (DSD64) or 352.8 kHz (DSD128) PCM.
-- DSD256/512 likely exceed DoP; native DSD is not enabled in this build.
+- DoP needs the DAC to accept 176.4 kHz (DSD64), 352.8 kHz (DSD128) or
+  705.6 kHz (DSD256) PCM.
+- DSD256 has been verified at 705.6 kHz; **DSD512 is unsupported** (it would
+  need native DSD, not enabled in this build).
 - MPD logs: `logread | grep -i mpd`.
 
 ## SMB share will not mount
@@ -59,7 +61,7 @@ dmesg | tail -20        # kernel cifs errors
 
 ```sh
 logread | grep -i mympd
-ls -ld /var/lib/mympd /var/cache/mympd
+ls -ld /etc/mympd /var/cache/mympd
 grep '^mympd:' /etc/passwd /etc/group
 ```
 

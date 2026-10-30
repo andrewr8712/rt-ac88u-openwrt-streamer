@@ -14,7 +14,7 @@ survives reboots.
 | UPnP | `upmpdcli` (DLNA/UPnP AV + OpenHome renderer) |
 | Library | SMB/CIFS client (`kmod-fs-cifs` + `cifsmount`) |
 | Persistence | MPD DB in `/etc/mpd`, myMPD state in `/etc/mympd` (overlay, not tmpfs) |
-| Measured | 16/44.1–24/192 PCM and DSD64/128/256 via DoP; 0 USB drops |
+| Measured | 16/44.1–24/192 PCM and DSD64/128/256 via DoP; 0 USB drops in the 9 m 49 s test |
 
 ## What is included
 
@@ -79,12 +79,12 @@ The script is idempotent and performs the bring-up steps that are easy to miss:
 | `/etc/rc.local` waits on `/proc/mounts` | `[ -d /mnt/music ]` is true even when unmounted |
 | `mpd-dirs` service (S92) | recreates/chowns persistent dirs before MPD starts |
 | `packet_steering`, `cron`, `gpio_switch` disabled | not needed here; `packet_steering` otherwise fails at every boot |
-| myMPD `loglevel=3`, MPD `log_level "error"` | quieter logs without hiding errors |
+| myMPD `loglevel=4`, MPD `log_level "error"` | warnings + errors retained (3 = errors only) |
 | `actimeo=60` on the CIFS mount | far fewer SMB metadata round-trips while browsing |
 
 Then open `http://<ip>:8080` (myMPD) or `http://<ip>/` (LuCI). myMPD needs
-**Music directory = `/mnt/music`** set once (Autodetect only works over a Unix
-socket); the setting now persists.
+**Music directory** is pre-set to `/mnt/music` by the script (Autodetect only
+works over a Unix socket); verify it on the myMPD MPD-connection page.
 
 ### Manual SMB mount (if you skip the script)
 
@@ -92,7 +92,7 @@ socket); the setting now persists.
 mkdir -p /mnt/music
 printf 'username=USER\npassword=PASS\n' > /etc/smbcredentials
 chmod 600 /etc/smbcredentials
-echo '//10.0.0.216/public /mnt/music cifs credentials=/etc/smbcredentials,vers=3.0,iocharset=utf8,uid=32768,gid=32768,actimeo=60,ro 0 0' >> /etc/fstab
+echo '//192.168.1.10/Music /mnt/music cifs credentials=/etc/smbcredentials,vers=3.0,iocharset=utf8,uid=32768,gid=32768,actimeo=60,ro 0 0' >> /etc/fstab
 mount -a
 ```
 
@@ -197,7 +197,7 @@ baseline when repeating this build on different hardware.
 | MPD won't start | `logread \| grep mpd` — usually `/etc/mpd` permissions |
 | M.A.L.P. can't connect | `bind_to_address "any"`; `netstat -lntp \| grep 6600`; phone on the same subnet (no guest VLAN / AP isolation) |
 | `exception: No mixer` | Benign — a client tried to change volume with `mixer_type "none"`; use the DAC's knob |
-| USB disconnects in `dmesg` | Cable/port — try the USB 3.0 port, direct (no hub) |
+| USB disconnects in `dmesg` | Use the **front USB 3.0** port, direct, no hub; the rear USB 2.0 port produced `error -71` |
 | HTTPS redirect | myMPD `ssl` must be `false`; clear browser HSTS |
 
 See `docs/TROUBLESHOOTING.md` for more.
