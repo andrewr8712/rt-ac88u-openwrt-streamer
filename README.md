@@ -16,6 +16,15 @@ survives reboots.
 | Persistence | MPD DB in `/etc/mpd`, myMPD state in `/etc/mympd` (overlay, not tmpfs) |
 | Measured | 16/44.1–24/192 PCM and DSD64/128/256 via DoP; 0 USB drops in the 9 m 49 s test |
 
+## Download
+
+[v1.1 release](https://github.com/andrewr8712/rt-ac88u-openwrt-streamer/releases/tag/v1.1)
+
+`openwrt-24.10.8-bcm53xx-generic-asus_rt-ac88u-squashfs.trx` — 14,024,704 bytes
+SHA256 `bc3599304765b7549ecb8c67c8a999d4d49458900b8fbea5773d30ad7a61dec6`
+
+Verify with `sha256sum <file>` before flashing.
+
 ## What is included
 
 `kmod-sound-core kmod-usb-audio alsa-utils usbutils mpd-mini upmpdcli
@@ -144,7 +153,11 @@ MPD also supports `password "…@readwrite"` with all clients supplying it.
 libsamplerate), no PulseAudio. PCM is passed through untouched; DSD uses DoP
 (DSD64 → 176.4 kHz, DSD128 → 352.8 kHz, DSD256 → 705.6 kHz — all measured, see
 below). Unsupported rates fail rather than being converted. For strict
-bit-perfect output keep the DAC at 0 dB / fixed volume.
+bit-transparent output keep the DAC at 0 dB / fixed volume.
+
+"Bit-perfect" here means bit-transparent by construction: no resampling, mixing
+or volume processing, and the negotiated rate/format was verified at the DAC. No
+null-test or bit-error measurement has been performed.
 
 ## Measured performance
 
@@ -177,6 +190,28 @@ dmesg | grep -c 'USB disconnect'                # link stability
 Raw CPU / memory / storage microbenchmarks (with the benchmark source and raw
 output) are in [BENCHMARKS.md](BENCHMARKS.md) and [`bench/`](bench/) — useful as a
 baseline when repeating this build on different hardware.
+
+## Tested on
+
+- ASUS RT-AC88U (bcm4709c0, 2× Cortex-A9, 512 MB), OpenWrt 24.10.8
+- Topping DX5 II on the **front USB 3.0** port (rear USB 2.0 caused `error -71`)
+- SMB3 share on a separate PC; myMPD, LuCI and M.A.L.P. clients
+- 9 m 49 s continuous playback across PCM and DSD — see [BENCHMARKS.md](BENCHMARKS.md)
+
+## Security
+
+- No firewall/NAT/DHCP server: the device is a LAN **client**. Keep it on a
+  trusted network.
+- MPD listens on port 6600 on all interfaces; anyone on the LAN can control
+  playback. Restrict with `bind_to_address` or an MPD `password` if needed.
+- myMPD and LuCI are plain HTTP (8080 and 80). Do not expose them to the internet.
+- Set a root password (`passwd`) before connecting to a shared network.
+
+## Support boundary
+
+Provided as-is for this exact router + DAC combination. Other hardware needs the
+porting changes described in [docs/BUILD.md](docs/BUILD.md); no warranty, and
+test before relying on it.
 
 ## Known limitations
 

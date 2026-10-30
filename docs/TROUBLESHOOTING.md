@@ -31,7 +31,7 @@ cat /proc/asound/cards
 - If the DAC appears as card 1, adjust the device.
 - "Failed to open audio device" with a sample-rate error is expected when the
   DAC does not support that rate: this MPD build has **no resampling** support,
-  by design (bit-perfect). Supported rates on the DX5 II are broad (44.1–768 kHz).
+  by design (bit-transparent; no resampling). Supported rates on the DX5 II are broad (44.1–768 kHz).
 
 ## DSD files are silent or converted
 
@@ -81,7 +81,7 @@ netstat -lntp | grep ':80'
 LuCI is on port **80**. If another service took the port, change
 `/etc/config/uhttpd`.
 
-## Bit-perfect checklist
+## Bit-transparent checklist
 
 - `device "hw:0,0"` (not `default`/`plughw`).
 - `mixer_type "none"`.

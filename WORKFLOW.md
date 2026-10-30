@@ -29,7 +29,7 @@ Checks done first, because they invalidate whole designs:
 - **Device support:** RT-AC88U is a `bcm53xx` target; image present in 24.10.8.
 - **Wi-Fi:** BCM4366 has no usable OpenWrt AP driver → design must be wired-only.
 - **USB:** both ports are host controllers → DAC can attach.
-- **Storage:** 128 MB NAND → ~109 MB overlay, ample for packages.
+- **Storage:** 128 MB NAND → ~96 MB usable overlay, ample for packages.
 - **DAC:** Topping DX5 II is UAC2 class-compliant and self-powered → kernel
   `snd-usb-audio` works without vendor drivers; enumerates as card 0.
 
@@ -233,7 +233,7 @@ supplied, when, and whether it was specific enough.
 | Web UI expected (Volumio replacement) | myMPD cross-compile (~45 min) + image rebuild | Yes — "what UI?" |
 | Publication requirements | No rework; done at the end | — |
 
-Estimated **30–60 minutes** of the 2 h 44 m was attributable to these late
+Estimated **30–60 minutes** of the initial 2 h 44 m build phase was attributable to these late
 constraints. Most of the elapsed time went to genuine engineering: the SDK
 config fight, the manual cross-builds, and verification — not to requirement churn.
 
@@ -374,8 +374,9 @@ the agent turned symptoms into root causes. That is the efficient shape for
 hardware bring-up: the person at the device observes, the agent analyses and
 proposes the next probe.
 
-No new product requirements appeared after the build; what looked like scope
-change (phone app, HTTPS, persistence) was defect discovery. The earlier
+None of the post-build work was a new product requirement: the SMB, DSD and
+WebUI needs surfaced during implementation, and the later device phase was
+defect discovery and hardening. The earlier
 collaboration assessment still holds: the brief was goal-level, the late
 requirement that actually cost time was the SMB library, and fixes were cheap
 once the evidence arrived.

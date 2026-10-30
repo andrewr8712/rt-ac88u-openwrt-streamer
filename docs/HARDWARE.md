@@ -6,7 +6,7 @@
 |---|---|
 | SoC | Broadcom BCM4709C0 — dual-core ARM Cortex-A9 @ 1.4 GHz |
 | RAM | 512 MB |
-| Flash | 128 MB NAND (SLC) — ~109 MB usable overlay after flashing |
+| Flash | 128 MB NAND (SLC) — ~96 MB usable overlay after flashing (UBIFS reserves the rest) |
 | USB | 1× USB 3.0 + 1× USB 2.0, both host mode |
 | Ethernet | 8× GbE (BCM53012 switch + Realtek RTL8365MB for LAN5–8) |
 | Wi-Fi | 2× BCM4366 (2.4/5 GHz) — **not usable** under OpenWrt |
@@ -40,7 +40,7 @@ driver without vendor drivers. With no other sound card present it enumerates as
 ALSA **card 0**, so MPD's output is `device "hw:0,0"`.
 
 `mixer_type "none"` is used: MPD does not touch the DAC's mixer; use the DX5 II's
-own volume control. For strict bit-perfect output, run the DAC at 0 dB / fixed
+own volume control. For strict bit-transparent output, run the DAC at 0 dB / fixed
 volume and attenuate downstream.
 
 Both ports are USB host ports and USB 2.0 bandwidth is sufficient for UAC2.
