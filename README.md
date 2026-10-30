@@ -14,6 +14,7 @@ survives reboots.
 | UPnP | `upmpdcli` (DLNA/UPnP AV + OpenHome renderer) |
 | Library | SMB/CIFS client (`kmod-fs-cifs` + `cifsmount`) |
 | Persistence | MPD DB in `/etc/mpd`, myMPD state in `/etc/mympd` (overlay, not tmpfs) |
+| Measured | 16/44.1–24/192 PCM and DSD64/128/256 via DoP; 0 USB drops |
 
 ## What is included
 
@@ -138,14 +139,43 @@ MPD also supports `password "…@readwrite"` with all clients supplying it.
 
 `device "hw:0,0"`, `mixer_type "none"`, no resampling (the build has no soxr or
 libsamplerate), no PulseAudio. PCM is passed through untouched; DSD uses DoP
-(DSD64 → 176.4 kHz, DSD128 → 352.8 kHz, visible in `hw_params`). Unsupported
-rates fail rather than being converted. For strict bit-perfect output keep the
-DAC at 0 dB / fixed volume.
+(DSD64 → 176.4 kHz, DSD128 → 352.8 kHz, DSD256 → 705.6 kHz — all measured, see
+below). Unsupported rates fail rather than being converted. For strict
+bit-perfect output keep the DAC at 0 dB / fixed volume.
+
+## Measured performance
+
+Measured over **9 m 49 s** of continuous playback (40 samples at 15 s intervals)
+on the RT-AC88U — dual Cortex-A9 @ 1.4 GHz, 512 MB RAM.
+
+| Source | MPD reports | ALSA `hw_params` | CPU avg / max |
+|---|---|---|---|
+| 16/44.1 FLAC | `44100:16:2` | 44100 Hz | 4.4 % / 6.6 % |
+| 24/96 FLAC | `96000:24:2` | 96000 Hz | 5.9 % / 9.1 % |
+| 24/192 FLAC | `192000:24:2` | 192000 Hz | 7.7 % / 13.3 % |
+| DSD64 | `dsd64:2` | 176400 Hz (DoP) | 7.6 % / 10.6 % |
+| DSD128 | `dsd128:2` | 352800 Hz (DoP) | 6.5 % / 9.4 % |
+| DSD256 | `dsd256:2` | **705600 Hz (DoP)** | 11.6 % / 12.7 % |
+
+- Overall CPU: **5.85 % average**, **13.3 % peak** (the peaks coincide with
+  format transitions, not steady-state decoding)
+- **0 USB disconnects**, no xruns or decode errors in `logread`
+- Every rate matched the source exactly — no resampling anywhere in the chain
+- DSD256 over DoP works; DSD512 would need native DSD
+
+Reproduce:
+
+```sh
+printf 'status\nclose\n' | nc 127.0.0.1 6600   # state + audio format
+cat /proc/asound/card0/pcm0p/sub0/hw_params     # what ALSA feeds the DAC
+dmesg | grep -c 'USB disconnect'                # link stability
+```
 
 ## Known limitations
 
 - **Wi-Fi unusable** (BCM4366) — wired only.
-- **DSD DoP only** — DSD256/512 need native DSD, not enabled.
+- **DSD over DoP only** — DSD64/128/256 verified; DSD512 would need native DSD
+  (not enabled in this build).
 - **Codecs:** FLAC/AAC/MP3/OGG/DSD/PCM; no ALAC/WMA/APE.
 - **myMPD Lua scripting disabled** (no liblua in the image).
 - **Client device:** no firewall/NAT/DHCP/DNS.
@@ -158,6 +188,9 @@ DAC at 0 dB / fixed volume.
 | Library empty after reboot | `grep ' /mnt/music ' /proc/mounts`; if missing `mount -a && /etc/init.d/mpd restart` |
 | myMPD settings reset | workdir must be `/etc/mympd` (`grep -- '-w' /etc/init.d/mympd`) |
 | MPD won't start | `logread \| grep mpd` — usually `/etc/mpd` permissions |
+| M.A.L.P. can't connect | `bind_to_address "any"`; `netstat -lntp \| grep 6600`; phone on the same subnet (no guest VLAN / AP isolation) |
+| `exception: No mixer` | Benign — a client tried to change volume with `mixer_type "none"`; use the DAC's knob |
+| USB disconnects in `dmesg` | Cable/port — try the USB 3.0 port, direct (no hub) |
 | HTTPS redirect | myMPD `ssl` must be `false`; clear browser HSTS |
 
 See `docs/TROUBLESHOOTING.md` for more.
