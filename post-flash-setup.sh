@@ -40,6 +40,7 @@ playlist_directory  "/etc/mpd/playlists"
 db_file             "/etc/mpd/tag_cache"
 state_file          "/etc/mpd/state"
 log_file            "syslog"
+log_level           "error"
 user                "mpd"
 bind_to_address     "any"
 port                "6600"
@@ -66,6 +67,7 @@ sed -i 's/^mympd:x:89:/mympd:x:91:/' /etc/group
 
 mkdir -p /etc/mympd/config /etc/mympd/state /var/cache/mympd
 printf 'false\n' > /etc/mympd/config/ssl           # plain HTTP on :8080
+printf '3\n' > /etc/mympd/config/loglevel           # 3 = info, less noise than default
 printf '%s\n' "$MOUNT_POINT" > /etc/mympd/state/music_directory
 chown -R mympd:mympd /etc/mympd
 chown -R mympd:mympd /var/cache/mympd
@@ -97,7 +99,7 @@ if [ -n "$SMB_SERVER" ] && [ "$SMB_PASS" != "CHANGE_ME" ]; then
 	MPD_UID_N=$(id -u mpd)
 	MPD_GID_N=$(id -g mpd)
 	grep -q "//$SMB_SERVER/$SMB_SHARE" /etc/fstab 2>/dev/null || \
-		echo "//$SMB_SERVER/$SMB_SHARE $MOUNT_POINT cifs credentials=/etc/smbcredentials,vers=3.0,iocharset=utf8,uid=$MPD_UID_N,gid=$MPD_GID_N,ro 0 0" >> /etc/fstab
+		echo "//$SMB_SERVER/$SMB_SHARE $MOUNT_POINT cifs credentials=/etc/smbcredentials,vers=3.0,iocharset=utf8,uid=$MPD_UID_N,gid=$MPD_GID_N,actimeo=60,ro 0 0" >> /etc/fstab
 	mount -a || echo "WARNING: SMB mount failed - check server/share/credentials"
 else
 	echo "NOTE: SMB_PASS is unset (CHANGE_ME); leaving /etc/smbcredentials and"
@@ -132,6 +134,11 @@ uci -q commit upmpdcli 2>/dev/null || true
 echo ">> enabling services"
 for s in mpd upmpdcli mympd mpd-dirs; do
 	/etc/init.d/$s enable 2>/dev/null || true
+done
+
+echo ">> disabling services that are not needed here"
+for s in packet_steering cron gpio_switch; do
+	/etc/init.d/$s disable 2>/dev/null || true
 done
 
 /etc/init.d/mpd restart

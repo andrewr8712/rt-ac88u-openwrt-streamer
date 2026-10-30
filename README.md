@@ -78,6 +78,9 @@ The script is idempotent and performs the bring-up steps that are easy to miss:
 | static `/etc/fstab` CIFS entry | UCI `fstab` entries are not mounted by `block mount` for network shares |
 | `/etc/rc.local` waits on `/proc/mounts` | `[ -d /mnt/music ]` is true even when unmounted |
 | `mpd-dirs` service (S92) | recreates/chowns persistent dirs before MPD starts |
+| `packet_steering`, `cron`, `gpio_switch` disabled | not needed here; `packet_steering` otherwise fails at every boot |
+| myMPD `loglevel=3`, MPD `log_level "error"` | quieter logs without hiding errors |
+| `actimeo=60` on the CIFS mount | far fewer SMB metadata round-trips while browsing |
 
 Then open `http://<ip>:8080` (myMPD) or `http://<ip>/` (LuCI). myMPD needs
 **Music directory = `/mnt/music`** set once (Autodetect only works over a Unix
@@ -89,7 +92,7 @@ socket); the setting now persists.
 mkdir -p /mnt/music
 printf 'username=USER\npassword=PASS\n' > /etc/smbcredentials
 chmod 600 /etc/smbcredentials
-echo '//10.0.0.216/public /mnt/music cifs credentials=/etc/smbcredentials,vers=3.0,iocharset=utf8,uid=32768,gid=32768,ro 0 0' >> /etc/fstab
+echo '//10.0.0.216/public /mnt/music cifs credentials=/etc/smbcredentials,vers=3.0,iocharset=utf8,uid=32768,gid=32768,actimeo=60,ro 0 0' >> /etc/fstab
 mount -a
 ```
 
