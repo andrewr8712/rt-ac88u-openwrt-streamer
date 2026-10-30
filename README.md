@@ -207,6 +207,13 @@ baseline when repeating this build on different hardware.
 - myMPD and LuCI are plain HTTP (8080 and 80). Do not expose them to the internet.
 - Set a root password (`passwd`) before connecting to a shared network.
 
+## Porting
+
+This image is specific to the RT-AC88U; the workflow is reusable. See
+[docs/PORTING.md](docs/PORTING.md) for the target, DAC, network and persistence
+changes, and run [`qualify.sh`](qualify.sh) on the candidate device to produce a
+compatibility report.
+
 ## Support boundary
 
 Provided as-is for this exact router + DAC combination. Other hardware needs the
