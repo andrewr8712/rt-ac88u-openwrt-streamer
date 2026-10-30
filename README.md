@@ -114,6 +114,17 @@ aplay -l     # card 0: DX5 ...
 - **myMPD Lua scripting disabled** (no liblua in image).
 - **Client device**: no firewall/NAT/DHCP/DNS; LuCI has no firewall/PPP apps.
 
+## Download
+The flashable image is attached to the [v1.0 release](https://github.com/andrewr8712/rt-ac88u-openwrt-streamer/releases/tag/v1.0):
+
+`openwrt-24.10.8-bcm53xx-generic-asus_rt-ac88u-squashfs.trx` (SHA256 `532262ce38b0f6b5f0d5fe6d77015778a007ad926a165357e986df7221d5b029`).
+
+## Documentation
+- [Hardware notes](docs/HARDWARE.md) — router, DAC, Wi-Fi/serial caveats
+- [Build notes](docs/BUILD.md) — reproducing the image and the custom binaries
+- [Troubleshooting](docs/TROUBLESHOOTING.md) — no IP, DAC, SMB, myMPD, bit-perfect checks
+- [Changelog](CHANGELOG.md)
+
 ## Rebuild
 ```sh
 make image PROFILE="asus_rt-ac88u" PACKAGES="<list>" FILES="/path/to/ovl"
