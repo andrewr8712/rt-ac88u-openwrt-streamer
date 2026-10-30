@@ -30,9 +30,9 @@ per thread. `Mops/s` = millions of dependent operations per second.
 | Test | Threads | Mops/s |
 |---|---:|---:|
 | Integer (64-bit MAC chain) | 1 | **99.90** |
-| Integer (64-bit MAC chain) | 2 | **199.78** |
-| Double (dependent MAC) | 1 | **15.54** |
-| Double (dependent MAC) | 2 | **31.00** |
+| Integer (64-bit MAC chain) | 2 | **199.30** |
+| Double (dependent MAC) | 1 | **15.53** |
+| Double (dependent MAC) | 2 | **31.04** |
 
 Scaling is essentially linear (2.00×), as expected for two identical A9 cores.
 The low FP number is normal: it is a latency-bound dependent chain (FP multiply
@@ -46,17 +46,17 @@ latency), not a throughput test.
 |---|---:|
 | Sequential read | **0.43** |
 | Sequential write | **1.84** |
-| `memcpy` (64 MB→64 MB) | **0.36** |
+| `memcpy` (64 MB→64 MB) | **0.34** |
 
 Pointer-chase latency (random permutation, 5 M accesses):
 
 | Working set | Latency |
 |---|---:|
-| 4 KB | 6.63 ns |
-| 64 KB | 18.93 ns |
-| 1 MB | 180.59 ns |
-| 8 MB | 216.79 ns |
-| 32 MB | 276.94 ns |
+| 4 KB | 6.09 ns |
+| 64 KB | 19.23 ns |
+| 1 MB | 179.75 ns |
+| 8 MB | 214.97 ns |
+| 32 MB | 273.70 ns |
 
 Interpretation:
 
@@ -74,15 +74,15 @@ Interpretation:
 
 | Target | Write MB/s | Read MB/s | Notes |
 |---|---:|---:|---|
-| `/tmp` (tmpfs, 128 MB) | **307.4** | **396.2** | RAM ceiling, not storage |
-| `/etc` (UBIFS overlay, 32 MB) | **51.4** | **88.3** | NAND + ECC, small file |
-| `/mnt/music` (CIFS, cold read) | — | **13.0** | server-dependent¹ |
+| `/tmp` (tmpfs, 128 MB) | **306.2** | **393.4** | RAM ceiling, not storage |
+| `/etc` (UBIFS overlay, 32 MB) | **51.8** | **89.4** | NAND + ECC, small file |
+| `/mnt/music` (CIFS, cold read) | — | **11.1** | server-dependent¹ |
 
 ¹ The SMB number reflects the **server, its disk and the network path**, not the
 router's CPU. It is included to show the end-to-end library path; do not use it
 to compare routers unless both use the same server and share.
 
-Thermal: 72.7 °C before, 73.8 °C after the run.
+Thermal: 70.5 °C before, 71.1 °C after the run.
 
 ## Raw output
 
@@ -92,26 +92,26 @@ machine,armv7l
 cpu_model,ARMv7 Processor rev 0 (v7l)
 bogomips,1400.00
 mem_total_kb,509252
-temp_mc,72724
+temp_mc,70500
 cpu_int_1t_mops,99.90
-cpu_fp_1t_mops,15.54
-cpu_int_2t_mops,199.78
-cpu_fp_2t_mops,31.00
+cpu_fp_1t_mops,15.53
+cpu_int_2t_mops,199.30
+cpu_fp_2t_mops,31.04
 membw_read_gbs,0.43
 membw_write_gbs,1.84
-membw_copy_gbs,0.36
-memlat_4k_ns,6.63
-memlat_64k_ns,18.93
-memlat_1024k_ns,180.59
-memlat_8192k_ns,216.79
-memlat_32768k_ns,276.94
-iowrite_mbs,307.43
-ioread_mbs,396.20
-iowrite_mbs,51.38
-ioread_mbs,88.28
+membw_copy_gbs,0.34
+memlat_4k_ns,6.09
+memlat_64k_ns,19.23
+memlat_1024k_ns,179.75
+memlat_8192k_ns,214.97
+memlat_32768k_ns,273.70
+iowrite_mbs,306.20
+ioread_mbs,393.42
+iowrite_mbs,51.78
+ioread_mbs,89.37
 cifs_file,/mnt/music/…/07 Fool's Overture.flac
-ioread_mbs,13.03
-temp_after_mc,73836
+ioread_mbs,11.06
+temp_after_mc,71056
 ```
 
 (The two `iowrite`/`ioread` pairs are tmpfs then UBIFS, in that order.)
