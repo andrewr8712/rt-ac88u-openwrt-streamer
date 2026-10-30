@@ -281,5 +281,107 @@ Answering 1–3 before the first build would have removed most of the rework;
 
 ---
 
-*Companion documents: `README.md`, `docs/BUILD.md`, `docs/HARDWARE.md`,
-`docs/TROUBLESHOOTING.md`, `PROJECT-REPORT.md` (token/cost metrics).*
+## 15. Hardware bring-up
+
+The image flashed cleanly and the DAC enumerated on first boot, but playback
+still failed. Two independent causes had to be separated:
+
+- **USB link instability.** `dmesg` showed `error -71`, repeated disconnect /
+  re-enumeration and "attempt power cycle". This is a physical-layer symptom
+  (cable/port), not an ALSA or MPD configuration problem. After moving to a
+  stable port/cable, the disconnect count stayed at **0** for the rest of the
+  session.
+- **Group permissions.** `/dev/snd/pcmC0D0p` is `root:audio 660`, and `mpd` was
+  not in `audio`. ALSA/MPD surfaced this as *"No such file or directory"* on
+  `hw:0,0`, which reads like a missing device but was a permission denial.
+  Checking `id mpd` and `ls -l /dev/snd` is faster than chasing the device string.
+
+The lesson: when a USB audio device "disappears", check the kernel log first,
+then device-node ownership, then the player configuration — in that order.
+
+## 16. Persistence and boot ordering
+
+Three separate tmpfs losses looked like one "settings don't stick" bug:
+
+1. MPD database/state under `/var/lib/mpd` → moved to `/etc/mpd`.
+2. myMPD workdir under `/var/lib/mympd` → moved to `/etc/mympd`.
+3. The SMB mount itself: UCI `fstab` entries are not mounted by `block mount`
+   for network shares, so a static `/etc/fstab` line was required.
+
+Two ordering traps compounded it:
+
+- `fstab` runs before DHCP, so the first mount attempt fails; a retry is needed
+  after the interface is up.
+- The retry checked `[ -d /mnt/music ]`, which is true even when nothing is
+  mounted. Checking `/proc/mounts` is the correct test.
+
+A third, subtler issue: the `mympd` user was created with uid 89, colliding with
+`upmpdcli`. It worked, but file/process ownership was misleading; uid 91 fixed it.
+
+## 17. Optimisation pass
+
+The appliance was already lean — **1.2 MB of 96 MB overlay**, 32 MB RAM used,
+~6 % CPU — so debloating was about correctness and noise, not resources.
+
+Applied:
+
+- disabled `packet_steering` (failed at every boot), `cron` (no jobs),
+  `gpio_switch` (no config)
+- myMPD `loglevel` 5→3; MPD `log_level "error"`
+- CIFS `actimeo=1`→`60`
+
+Deliberately **not** removed: `block-mount`/`fstools` (fstab init), `libiwinfo`/
+`rpcd-mod-iwinfo` (LuCI dependencies), OSS/MIDI ALSA modules (dependency risk).
+The USB-storage stack (~1.9 MB) is only worth removing if USB drives will never
+be used — a requirement question, not a technical one.
+
+## 18. Benchmarking methodology
+
+To keep numbers comparable across routers, the benchmark is a **self-contained
+static binary** (`bench/bench.c`) rather than an opkg-installed tool. That avoids
+version drift, network dependencies and missing packages on other devices.
+
+Pitfalls encountered:
+
+- The compiler removed a benchmarked `memcpy` (absurd TB/s result); keeping the
+  destination alive with a checksum fixed it.
+- On Cortex-A9, sequential **read** bandwidth is far below **write** bandwidth
+  (no hardware prefetcher, limited outstanding loads). That is a property of the
+  core, not a bug; `memcpy` tracks the read figure, which corroborates it.
+- tmpfs numbers measure RAM, not storage; UBIFS numbers include NAND/ECC and are
+  size-sensitive.
+- CIFS read throughput reflects the server and network, not the router CPU.
+- Single runs; treat <5 % differences as noise.
+
+Publishing the source, build flags and raw output matters more than the numbers
+themselves.
+
+## 19. Publication and repository hygiene
+
+- The image is a **release asset**, not a git blob; the repo stays source/config.
+- Manual web-UI uploads diverged the history twice. Resolution: fetch, then merge
+  keeping canonical files (`-X ours`) while accepting genuinely new uploads.
+  Verify with the API (HEAD SHA, raw-file greps) rather than trusting the push.
+- `gh` device-flow auth needs a writable config directory (`GH_CONFIG_DIR`),
+  because `~/.config` is read-only in this sandbox. The OAuth token is stored in
+  plain text there and was deleted after every push.
+
+## 20. Collaboration during bring-up
+
+The working style shifted from specification to diagnosis: the user supplied
+concrete evidence — error banners, `dmesg`, `aplay -l`, `ip addr`, `logread` — and
+the agent turned symptoms into root causes. That is the efficient shape for
+hardware bring-up: the person at the device observes, the agent analyses and
+proposes the next probe.
+
+No new product requirements appeared after the build; what looked like scope
+change (phone app, HTTPS, persistence) was defect discovery. The earlier
+collaboration assessment still holds: the brief was goal-level, the late
+requirement that actually cost time was the SMB library, and fixes were cheap
+once the evidence arrived.
+
+---
+
+*Companion documents: `README.md`, `BENCHMARKS.md`, `docs/BUILD.md`,
+`docs/HARDWARE.md`, `docs/TROUBLESHOOTING.md`, `PROJECT-REPORT.md`
+(token/cost metrics).*
