@@ -1,0 +1,22 @@
+name: ci
+on: [push, pull_request]
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: shellcheck
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq shellcheck
+          shellcheck post-flash-setup.sh verify.sh build.sh
+      - name: benchmark builds and runs
+        run: |
+          cc -O2 -pthread -o /tmp/bench bench/bench.c
+          /tmp/bench cpu 1
+      - name: repository checks
+        run: ./verify.sh
+      - name: links
+        uses: lycheeverse/lychee-action@v2
+        with:
+          args: --no-progress --offline README.md docs/*.md

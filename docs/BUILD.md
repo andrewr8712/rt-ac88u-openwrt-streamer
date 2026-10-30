@@ -3,6 +3,20 @@
 How this image was produced. Everything is reproducible from an x86_64 Linux
 host with ~15 GB free disk, `wget`, `zstd`, `tar`, `git`, `cmake`, `gcc`.
 
+## 0. Pinned versions
+
+| Component | Version |
+|---|---|
+| OpenWrt SDK / Image Builder | 24.10.8, gcc 13.3.0, musl |
+| Linux kernel | 6.6.144 |
+| MPD | 0.23.15 |
+| myMPD | 26.1.1 |
+| upmpdcli | 1.8.11 |
+| LuCI | 24.10 |
+
+`build.sh` automates the steps below; `build/packages.txt` holds the exact
+package list. Patches live in `patches/`.
+
 ## 1. Base image (Image Builder)
 
 ```sh

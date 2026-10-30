@@ -1,0 +1,29 @@
+# Third-party components
+
+This repository contains original scripts, configuration and documentation
+(licensed MIT, see `LICENSE`) and build instructions for an image that
+redistributes the following open-source components:
+
+| Component | Version | License | Source |
+|---|---|---|---|
+| OpenWrt | 24.10.8 | GPL-2.0 | https://github.com/openwrt/openwrt/tree/v24.10.8 |
+| Linux kernel | 6.6.144 | GPL-2.0 | https://www.kernel.org/ |
+| MPD | 0.23.15 | GPL-2.0-or-later | https://www.musicpd.org/ |
+| myMPD | 26.1.1 | GPL-3.0-or-later | https://github.com/jcorporation/myMPD |
+| upmpdcli | 1.8.11 | GPL-3.0-or-later | https://www.lesbonscomptes.com/upmpdcli/ |
+| LuCI | 24.10 | Apache-2.0 | https://github.com/openwrt/luci |
+| libmpdclient | 2.22 | BSD-3-Clause | https://www.musicpd.org/libs/libmpdclient/ |
+
+## Modifications
+
+- myMPD: `-Werror` removed from `CMakeLists.txt`
+  (`patches/mympd-26.1.1-remove-werror.patch`).
+- MPD: built with `-Ddsd=true` (no source changes).
+- Binaries are stripped and rebuilt with path mapping; see `build.sh`.
+
+## Source availability
+
+Corresponding source is available from the upstream URLs above, plus the
+patches and build scripts in this repository (`patches/`, `build/`,
+`docs/BUILD.md`, `build.sh`). The image is an aggregate of these components;
+the MIT licence applies only to the original material in this repository.

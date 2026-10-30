@@ -1,0 +1,10 @@
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -377,7 +377,6 @@
+     "-pedantic"
+     "-std=gnu17"
+     "-Wall"
+-    "-Werror"
+     "-Wextra"
+     "-Wformat=2"
+     "-Wformat-security"

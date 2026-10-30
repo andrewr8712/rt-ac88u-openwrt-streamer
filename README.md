@@ -237,6 +237,14 @@ test before relying on it.
 
 See `docs/TROUBLESHOOTING.md` for more.
 
+## License
+
+Original scripts, configuration and documentation are MIT licensed — see
+[LICENSE](LICENSE). The image bundles GPL-family components (OpenWrt, MPD,
+myMPD, upmpdcli); see [NOTICE](NOTICE) for versions, licences and sources, and
+[`patches/`](patches/) for modifications. If you reuse this work, keep the
+licence and notice files and link back to this repository.
+
 ## Rebuild
 
 ```sh
