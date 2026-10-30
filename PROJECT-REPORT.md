@@ -90,13 +90,14 @@ Notes:
 
 ### Build iterations
 
-Five image builds were required to converge:
+Six image builds (five configurations) were required to converge:
 
 1. `mpd-full` baseline — 17 MB, rejected after dependency audit
 2. `mpd-mini` — 11 MB, PulseAudio/BlueZ/Avahi removed
 3. DSD-enabled `mpd` — 11 MB
-4. DHCP-client LAN default — 11 MB
-5. LuCI + myMPD + SMB/CIFS — **14 MB (final)**
+4. Rebuild with host RPATH stripped — 11 MB
+5. DHCP-client LAN default — 11 MB
+6. LuCI + myMPD + SMB/CIFS — **14 MB (final)**
 
 ### Verification performed
 
