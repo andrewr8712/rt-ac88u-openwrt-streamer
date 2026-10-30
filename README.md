@@ -174,6 +174,10 @@ cat /proc/asound/card0/pcm0p/sub0/hw_params     # what ALSA feeds the DAC
 dmesg | grep -c 'USB disconnect'                # link stability
 ```
 
+Raw CPU / memory / storage microbenchmarks (with the benchmark source and raw
+output) are in [BENCHMARKS.md](BENCHMARKS.md) and [`bench/`](bench/) — useful as a
+baseline when repeating this build on different hardware.
+
 ## Known limitations
 
 - **Wi-Fi unusable** (BCM4366) — wired only.

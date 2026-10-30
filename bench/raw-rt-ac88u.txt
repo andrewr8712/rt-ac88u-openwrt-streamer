@@ -1,0 +1,25 @@
+kernel,6.6.144
+machine,armv7l
+cpu_model,ARMv7 Processor rev 0 (v7l)
+bogomips,1400.00
+mem_total_kb,509252
+temp_mc,72724
+cpu_int_1t_mops,99.90
+cpu_fp_1t_mops,15.54
+cpu_int_2t_mops,199.78
+cpu_fp_2t_mops,31.00
+membw_read_gbs,0.43
+membw_write_gbs,1.84
+membw_copy_gbs,0.36
+memlat_4k_ns,6.63
+memlat_64k_ns,18.93
+memlat_1024k_ns,180.59
+memlat_8192k_ns,216.79
+memlat_32768k_ns,276.94
+iowrite_mbs,307.43
+ioread_mbs,396.20
+iowrite_mbs,51.38
+ioread_mbs,88.28
+cifs_file,/mnt/music/Supertramp - 1977 - Even In The Quietest Moments... (Remastered 2026) (24bit-192kHz)/07 Fool's Overture.flac
+ioread_mbs,13.03
+temp_after_mc,73836
