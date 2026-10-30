@@ -1,5 +1,14 @@
 # Changelog
 
+## v1.2 — 2026-10-30
+
+Configuration is now baked into the image; the setup script only handles SMB.
+
+- `mpd.conf`, `rc.local`, audio-group init and myMPD first-boot settings in the overlay
+- `post-flash-setup.sh` reduced to credentials, mount entry and verification
+- `bench.c`: per-thread CPU results (no data race), local accumulator in latency loop
+- Added `verify.sh` for binary hygiene, privacy and documentation consistency
+
 ## v1.1 — 2026-10-30
 
 Privacy and hardening release.

@@ -1,0 +1,13 @@
+#!/bin/sh
+(
+	i=0
+	while [ $i -lt 30 ]; do
+		grep -q ' /mnt/music ' /proc/mounts && break
+		mount -a 2>/dev/null
+		sleep 2
+		i=$((i+1))
+	done
+	/etc/init.d/mpd restart
+	/etc/init.d/upmpdcli restart
+) &
+exit 0

@@ -18,10 +18,10 @@ survives reboots.
 
 ## Download
 
-[v1.1 release](https://github.com/andrewr8712/rt-ac88u-openwrt-streamer/releases/tag/v1.1)
+[v1.1 release](https://github.com/andrewr8712/rt-ac88u-openwrt-streamer/releases/tag/v1.2)
 
 `openwrt-24.10.8-bcm53xx-generic-asus_rt-ac88u-squashfs.trx` — 14,024,704 bytes
-SHA256 `bc3599304765b7549ecb8c67c8a999d4d49458900b8fbea5773d30ad7a61dec6`
+SHA256 `ecd3b82fdd6425e94497d6e14acdbf5e4ddf7609aee13ba7d3ef73a716680bd5`
 
 Verify with `sha256sum <file>` before flashing.
 

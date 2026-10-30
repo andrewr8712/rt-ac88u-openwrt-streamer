@@ -1,7 +1,21 @@
 #!/bin/sh
-# Create the myMPD system user before services start.
+# Create the myMPD user, persistent dirs and first-boot settings.
 grep -q '^mympd:' /etc/passwd || \
 	echo 'mympd:x:91:91:mympd:/etc/mympd:/bin/false' >> /etc/passwd
 grep -q '^mympd:' /etc/group || \
 	echo 'mympd:x:91:' >> /etc/group
+
+mkdir -p /etc/mpd/playlists /etc/mympd/config /etc/mympd/state /var/cache/mympd
+chown -R mpd:mpd /etc/mpd
+chown -R mympd:mympd /etc/mympd /var/cache/mympd
+
+printf 'false\n' > /etc/mympd/config/ssl
+printf '4\n' > /etc/mympd/config/loglevel
+printf '/mnt/music\n' > /etc/mympd/state/music_directory
+chown mympd:mympd /etc/mympd/config/ssl /etc/mympd/config/loglevel \
+	/etc/mympd/state/music_directory
+
+grep -q '^audio:.*mpd' /etc/group || \
+	sed -i 's/^\(audio:x:[0-9]*:\).*/\1mpd/' /etc/group
+
 exit 0

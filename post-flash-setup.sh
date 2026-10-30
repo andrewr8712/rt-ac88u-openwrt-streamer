@@ -1,7 +1,10 @@
 #!/bin/sh
 #
-# post-flash-setup.sh - configure the RT-AC88U OpenWrt image as a persistent
-# MPD + UPnP + myMPD music streamer with an SMB library.
+# post-flash-setup.sh - attach the SMB library and start the player stack.
+#
+# All player configuration (MPD, myMPD, audio group, persistent dirs, boot
+# order) is baked into the image overlay. This script only handles what cannot
+# be baked: SMB credentials, the mount entry, and verification.
 #
 # EDIT THE SMB SETTINGS BELOW before running.
 #
@@ -12,87 +15,20 @@
 set -e
 
 # ---- SMB library -----------------------------------------------------------
-SMB_SERVER="192.168.1.10"        # NAS / PC address
-SMB_SHARE="public"             # share name
+SMB_SERVER="192.168.1.10"      # NAS / PC address
+SMB_SHARE="Music"              # share name
 SMB_USER="USER"
 SMB_PASS="CHANGE_ME"           # <-- set this
 MOUNT_POINT="/mnt/music"
 # ---------------------------------------------------------------------------
 
-MPD_USER="mpd"
-MYMPD_UID="91"
+echo ">> checking baked configuration"
+[ -f /etc/mpd.conf ] || { echo "ERROR: /etc/mpd.conf missing - wrong image?"; exit 1; }
+mkdir -p "$MOUNT_POINT" /etc/mpd /etc/mympd
+chown -R mpd:mpd /etc/mpd 2>/dev/null || true
+chown -R mympd:mympd /etc/mympd 2>/dev/null || true
 
-echo ">> MPD: persistent state directory"
-mkdir -p /etc/mpd/playlists
-chown -R "$MPD_USER:$MPD_USER" /etc/mpd
-
-echo ">> MPD: audio group (device nodes are root:audio 660)"
-if ! grep -q '^audio:.*mpd' /etc/group; then
-	sed -i 's/^\(audio:x:[0-9]*:\).*/\1mpd/' /etc/group
-fi
-# run mpd with audio as primary group as well
-sed -i 's/^GROUP="mpd"/GROUP="audio"/' /etc/init.d/mpd
-
-echo ">> MPD: configuration"
-cat > /etc/mpd.conf <<'EOF'
-music_directory     "/mnt/music"
-playlist_directory  "/etc/mpd/playlists"
-db_file             "/etc/mpd/tag_cache"
-state_file          "/etc/mpd/state"
-log_file            "syslog"
-log_level           "error"
-user                "mpd"
-bind_to_address     "any"
-port                "6600"
-auto_update         "yes"
-restore_paused      "yes"
-
-audio_output {
-    type        "alsa"
-    name        "Topping DX5 II"
-    device      "hw:0,0"      # USB DAC is card 0 (no onboard sound)
-    mixer_type  "none"        # use the DAC's own volume knob
-    dop         "yes"         # DSD-over-PCM (DSD64/128/256 on Topping)
-}
-EOF
-
-echo ">> myMPD: dedicated user/workdir (uid $MYMPD_UID, avoids upmpdcli's 89)"
-grep -q '^mympd:' /etc/passwd || \
-	echo "mympd:x:${MYMPD_UID}:${MYMPD_UID}:mympd:/etc/mympd:/bin/false" >> /etc/passwd
-grep -q '^mympd:' /etc/group || \
-	echo "mympd:x:${MYMPD_UID}:" >> /etc/group
-# migrate an earlier install that used uid 89
-sed -i 's/^mympd:x:89:89:/mympd:x:91:91:/' /etc/passwd
-sed -i 's/^mympd:x:89:/mympd:x:91:/' /etc/group
-
-mkdir -p /etc/mympd/config /etc/mympd/state /var/cache/mympd
-printf 'false\n' > /etc/mympd/config/ssl           # plain HTTP on :8080
-printf '4\n' > /etc/mympd/config/loglevel           # 4 = warn (keep warnings; 3 = errors only)
-printf '%s\n' "$MOUNT_POINT" > /etc/mympd/state/music_directory
-chown -R mympd:mympd /etc/mympd
-chown -R mympd:mympd /var/cache/mympd
-
-# myMPD init: persistent workdir instead of /var/lib/mympd
-sed -i 's#-w /var/lib/mympd#-w /etc/mympd#' /etc/init.d/mympd 2>/dev/null || true
-sed -i 's#mkdir -p /var/lib/mympd /var/cache/mympd#mkdir -p /etc/mympd /var/cache/mympd#' /etc/init.d/mympd 2>/dev/null || true
-sed -i 's#chown mympd:mympd /var/lib/mympd /var/cache/mympd#chown -R mympd:mympd /etc/mympd; chown -R mympd:mympd /var/cache/mympd#' /etc/init.d/mympd 2>/dev/null || true
-
-echo ">> boot-time directory service (tmpfs is wiped every boot)"
-cat > /etc/init.d/mpd-dirs <<'EOS'
-#!/bin/sh /etc/rc.common
-START=92
-start() {
-	mkdir -p /etc/mpd/playlists /etc/mympd
-	chown -R mpd:mpd /etc/mpd
-	chown -R mympd:mympd /etc/mympd
-}
-EOS
-chmod +x /etc/init.d/mpd-dirs
-/etc/init.d/mpd-dirs enable
-
-echo ">> SMB mount (static /etc/fstab; UCI fstab is not honoured by block mount)"
-mkdir -p "$MOUNT_POINT"
-
+echo ">> SMB mount"
 if [ -n "$SMB_SERVER" ] && [ "$SMB_PASS" != "CHANGE_ME" ]; then
 	printf 'username=%s\npassword=%s\n' "$SMB_USER" "$SMB_PASS" > /etc/smbcredentials
 	chmod 600 /etc/smbcredentials
@@ -103,44 +39,16 @@ if [ -n "$SMB_SERVER" ] && [ "$SMB_PASS" != "CHANGE_ME" ]; then
 	mount -a || echo "WARNING: SMB mount failed - check server/share/credentials"
 else
 	echo "NOTE: SMB_PASS is unset (CHANGE_ME); leaving /etc/smbcredentials and"
-	echo "      /etc/fstab untouched. Edit them manually or re-run with the password."
+	echo "      /etc/fstab untouched."
 fi
-/etc/init.d/fstab enable
-
-echo ">> boot hook: mount the share, then (re)start the players"
-cat > /etc/rc.local <<'EOS'
-#!/bin/sh
-(
-	i=0
-	while [ $i -lt 30 ]; do
-		grep -q ' /mnt/music ' /proc/mounts && break
-		mount -a 2>/dev/null
-		sleep 2
-		i=$((i+1))
-	done
-	/etc/init.d/mpd restart
-	/etc/init.d/upmpdcli restart
-) &
-exit 0
-EOS
-chmod +x /etc/rc.local
-
-echo ">> upmpdcli"
-uci -q set upmpdcli.lan.friendly_name='RT-AC88U Music'
-uci -q set upmpdcli.lan.mpd_host='127.0.0.1'
-uci -q set upmpdcli.lan.mpd_port='6600'
-uci -q commit upmpdcli 2>/dev/null || true
+/etc/init.d/fstab enable 2>/dev/null || true
 
 echo ">> enabling services"
-for s in mpd upmpdcli mympd mpd-dirs; do
+for s in mpd upmpdcli mympd; do
 	/etc/init.d/$s enable 2>/dev/null || true
 done
 
-echo ">> disabling services that are not needed here"
-for s in packet_steering cron gpio_switch; do
-	/etc/init.d/$s disable 2>/dev/null || true
-done
-
+echo ">> restarting services"
 /etc/init.d/mpd restart
 /etc/init.d/upmpdcli restart
 /etc/init.d/mympd restart
@@ -148,11 +56,14 @@ done
 sleep 2
 
 echo
-echo ">> ALSA playback devices:"
+echo ">> mount:"
+grep ' /mnt/music ' /proc/mounts || echo "  NOT MOUNTED"
+echo ">> ALSA devices:"
 aplay -l 2>/dev/null || true
-echo
-echo ">> USB devices (look for the DAC):"
+echo ">> USB:"
 lsusb 2>/dev/null | grep -i -e topping -e thesycon || true
+echo ">> MPD:"
+printf 'stats\nclose\n' | nc 127.0.0.1 6600 2>/dev/null | grep -E 'songs|albums' || true
 echo
 echo ">> Done."
 echo "   myMPD: http://<router-ip>:8080"

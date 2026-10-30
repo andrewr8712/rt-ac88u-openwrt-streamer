@@ -31,23 +31,28 @@ static double now(void)
 
 static volatile uint64_t sink;
 
-static void *int_worker(void *arg)
+struct cpu_arg {
+	uint64_t n;
+	uint64_t result;
+};
+
+static void *int_worker(void *p)
 {
-	uint64_t n = (uint64_t)(uintptr_t)arg;
+	struct cpu_arg *a = p;
 	uint64_t x = 0x9e3779b97f4a7c15ULL;
-	for (uint64_t i = 0; i < n; i++)
+	for (uint64_t i = 0; i < a->n; i++)
 		x = x * 6364136223846793005ULL + 1442695040888963407ULL;
-	sink = x;
+	a->result = x;
 	return NULL;
 }
 
-static void *fp_worker(void *arg)
+static void *fp_worker(void *p)
 {
-	uint64_t n = (uint64_t)(uintptr_t)arg;
-	double a = 1.0000000001;
-	for (uint64_t i = 0; i < n; i++)
-		a = a * 1.00000000000001 + 1e-15;
-	sink = (uint64_t)(a * 1e15);
+	struct cpu_arg *a = p;
+	double v = 1.0000000001;
+	for (uint64_t i = 0; i < a->n; i++)
+		v = v * 1.00000000000001 + 1e-15;
+	a->result = (uint64_t)(v * 1e15);
 	return NULL;
 }
 
@@ -56,24 +61,40 @@ static int run_cpu(int argc, char **argv)
 	int threads = (argc > 2) ? atoi(argv[2]) : 1;
 	uint64_t per = 300000000ULL;
 	pthread_t th[8];
+	struct cpu_arg args[8];
 	double t0, dt;
+	uint64_t acc;
 	if (threads < 1) threads = 1;
 	if (threads > 8) threads = 8;
 
 	t0 = now();
-	for (int i = 0; i < threads; i++)
-		pthread_create(&th[i], NULL, int_worker, (void *)(uintptr_t)per);
+	for (int i = 0; i < threads; i++) {
+		args[i].n = per;
+		args[i].result = 0;
+		pthread_create(&th[i], NULL, int_worker, &args[i]);
+	}
 	for (int i = 0; i < threads; i++)
 		pthread_join(th[i], NULL);
 	dt = now() - t0;
+	acc = 0;
+	for (int i = 0; i < threads; i++)
+		acc += args[i].result;
+	sink = acc;
 	printf("cpu_int_%dt_mops,%.2f\n", threads, threads * (double)per / dt / 1e6);
 
 	t0 = now();
-	for (int i = 0; i < threads; i++)
-		pthread_create(&th[i], NULL, fp_worker, (void *)(uintptr_t)per);
+	for (int i = 0; i < threads; i++) {
+		args[i].n = per;
+		args[i].result = 0;
+		pthread_create(&th[i], NULL, fp_worker, &args[i]);
+	}
 	for (int i = 0; i < threads; i++)
 		pthread_join(th[i], NULL);
 	dt = now() - t0;
+	acc = 0;
+	for (int i = 0; i < threads; i++)
+		acc += args[i].result;
+	sink = acc;
 	printf("cpu_fp_%dt_mops,%.2f\n", threads, threads * (double)per / dt / 1e6);
 	return 0;
 }
@@ -145,10 +166,12 @@ static int run_memlat(void)
 			uint32_t tmp = perm[i]; perm[i] = perm[j]; perm[j] = tmp;
 		}
 		t0 = now();
+		uint64_t acc = 0;
 		for (uint64_t i = 0; i < accesses; i++) {
 			idx = perm[idx];
-			sink += buf[idx];
+			acc += buf[idx];
 		}
+		sink = acc;
 		dt = now() - t0;
 		printf("memlat_%zuk_ns,%.2f\n", bytes >> 10, (dt / accesses) * 1e9);
 		free(perm); free(buf);
