@@ -122,12 +122,17 @@ HTTPS-Only exception; or test in a private window).
 ## Phone control
 
 - **myMPD PWA** — add to home screen.
-- **M.A.L.P.** (Android, MPD native) — set `bind_to_address "any"` in
-  `/etc/mpd.conf` first; it browses MPD directly.
+- **M.A.L.P.** (Android, MPD native) — MPD listens on all interfaces
+  (`bind_to_address "any"`), so point it at the router IP, port **6600**, no
+  password. It browses MPD's database directly.
 - **BubbleUPnP / Kazoo / mconnect / Hi-Fi Cast** — UPnP control points; they see
   the `upmpdcli` renderer. Without a UPnP media server they cannot browse the
   SMB library (uprcl needs python3, not installed); use MPD-native apps or
   myMPD for local browsing.
+
+MPD listens on all interfaces (there is no firewall in this image). On a trusted
+LAN that is fine; to restrict it, set `bind_to_address` to the router's LAN IP.
+MPD also supports `password "…@readwrite"` with all clients supplying it.
 
 ## Bit-perfect path
 
