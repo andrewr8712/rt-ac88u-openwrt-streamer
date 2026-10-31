@@ -16,7 +16,7 @@ in [`bench/`](bench/).
 | BogoMIPS | 1400.00 per core |
 | RAM | 509,252 kB usable (~512 MB DDR3) |
 | Storage | 128 MB NAND, UBIFS overlay (`noatime`) |
-| OS | OpenWrt 24.10.8, Linux 6.6.144 |
+| OS | OpenWrt 24.10.8, Linux 6.6.144 (baseline; 25.12 uses kernel 6.12) |
 | Idle CPU temp | ~72 °C (`cpu-thermal`) |
 | Library | SMB3 share mounted with `actimeo=60`, read-only |
 

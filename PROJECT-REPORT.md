@@ -14,7 +14,7 @@
 | Total tokens | **178,485,851** |
 | Cache hit rate | **99.80 %** |
 | Total API cost | **$1.48 USD** |
-| Final image | 14 MB, SHA256 `ecd3b82f…16680bd5` |
+| Final image | 13 MB, SHA256 `612fe897…a8a9fd` |
 | Live library | 1,965 songs / 135 albums / 108 DSD files |
 | Deliverables | flashable image, GitHub repo, v1.0 release, baseline benchmarks |
 
@@ -168,10 +168,10 @@ so debloating would be cosmetic rather than necessary.
 
 | Item | Reference |
 |---|---|
-| Image | `openwrt-24.10.8-bcm53xx-generic-asus_rt-ac88u-squashfs.trx` (14,024,704 bytes) |
-| SHA256 | `ecd3b82fdd6425e94497d6e14acdbf5e4ddf7609aee13ba7d3ef73a716680bd5` |
+| Image | `openwrt-25.12.6-bcm53xx-generic-asus_rt-ac88u-squashfs.trx` (13,369,344 bytes) |
+| SHA256 | `612fe89737d871e51d78966e6ce174d88e77be41ab84bd003e87528de5a8a9fd` |
 | Repository | <https://github.com/andrewr8712/rt-ac88u-openwrt-streamer> |
-| Release | <https://github.com/andrewr8712/rt-ac88u-openwrt-streamer/releases/tag/v1.2> |
+| Release | <https://github.com/andrewr8712/rt-ac88u-openwrt-streamer/releases/tag/v2.0> |
 | Docs | `README.md`, `BENCHMARKS.md`, `WORKFLOW.md`, `docs/`, `CHANGELOG.md` |
 | Setup script | `post-flash-setup.sh` (idempotent; tested on the device) |
 

@@ -1,8 +1,8 @@
 [binaries]
-c = '/opt/openwrt-sdk/staging_dir/toolchain-arm_cortex-a9_gcc-13.3.0_musl_eabi/bin/arm-openwrt-linux-muslgnueabi-gcc'
-cpp = '/opt/openwrt-sdk/staging_dir/toolchain-arm_cortex-a9_gcc-13.3.0_musl_eabi/bin/arm-openwrt-linux-muslgnueabi-g++'
-ar = '/opt/openwrt-sdk/staging_dir/toolchain-arm_cortex-a9_gcc-13.3.0_musl_eabi/bin/arm-openwrt-linux-muslgnueabi-ar'
-strip = '/opt/openwrt-sdk/staging_dir/toolchain-arm_cortex-a9_gcc-13.3.0_musl_eabi/bin/arm-openwrt-linux-muslgnueabi-strip'
+c = '/opt/openwrt-sdk/staging_dir/toolchain-arm_cortex-a9_gcc-14.3.0_musl_eabi/bin/arm-openwrt-linux-muslgnueabi-gcc'
+cpp = '/opt/openwrt-sdk/staging_dir/toolchain-arm_cortex-a9_gcc-14.3.0_musl_eabi/bin/arm-openwrt-linux-muslgnueabi-g++'
+ar = '/opt/openwrt-sdk/staging_dir/toolchain-arm_cortex-a9_gcc-14.3.0_musl_eabi/bin/arm-openwrt-linux-muslgnueabi-ar'
+strip = '/opt/openwrt-sdk/staging_dir/toolchain-arm_cortex-a9_gcc-14.3.0_musl_eabi/bin/arm-openwrt-linux-muslgnueabi-strip'
 pkg-config = '/opt/openwrt-sdk/staging_dir/host/bin/pkg-config.real'
 
 [host_machine]

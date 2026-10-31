@@ -15,7 +15,7 @@ ROOT=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 OUT=${OUT:-$ROOT/out}
 mkdir -p "$OUT"
 
-TC=$SDK/staging_dir/toolchain-arm_cortex-a9_gcc-13.3.0_musl_eabi/bin
+TC=$SDK/staging_dir/toolchain-arm_cortex-a9_gcc-14.3.0_musl_eabi/bin
 TGT=$SDK/staging_dir/target-arm_cortex-a9_musl_eabi
 export STAGING_DIR=$SDK/staging_dir
 export PKG_CONFIG_LIBDIR=$TGT/usr/lib/pkgconfig:$TGT/usr/share/pkgconfig
@@ -51,7 +51,7 @@ rm -rf "$SRC_MYMPD/build-openwrt"
 "$SDK/staging_dir/host/bin/cmake" -S "$SRC_MYMPD" -B "$SRC_MYMPD/build-openwrt" \
 	-DCMAKE_TOOLCHAIN_FILE="$ROOT/build/mympd-toolchain.cmake" \
 	-DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=Release \
-	-DMATH_LIB="$SDK/staging_dir/toolchain-arm_cortex-a9_gcc-13.3.0_musl_eabi/arm-openwrt-linux-muslgnueabi/lib/libm.a" \
+	-DMATH_LIB="$SDK/staging_dir/toolchain-arm_cortex-a9_gcc-14.3.0_musl_eabi/arm-openwrt-linux-muslgnueabi/lib/libm.a" \
 	-DMYMPD_EMBEDDED_ASSETS=ON -DMYMPD_ENABLE_LUA=OFF -DMYMPD_ENABLE_UTF8=OFF \
 	-DMYMPD_DOC=OFF -DMYMPD_DOC_HTML=OFF -DMYMPD_MANPAGES=OFF \
 	-DMYMPD_STARTUP_SCRIPT=OFF -DMYMPD_EMBEDDED_LIBMPDCLIENT=OFF \

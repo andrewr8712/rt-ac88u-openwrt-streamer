@@ -7,12 +7,12 @@ host with ~15 GB free disk, `wget`, `zstd`, `tar`, `git`, `cmake`, `gcc`.
 
 | Component | Version |
 |---|---|
-| OpenWrt SDK / Image Builder | 24.10.8, gcc 13.3.0, musl |
-| Linux kernel | 6.6.144 |
-| MPD | 0.23.15 |
+| OpenWrt SDK / Image Builder | 25.12.6, gcc 14.3.0, musl |
+| Linux kernel | 6.12 |
+| MPD | 0.23.16 |
 | myMPD | 26.1.1 |
 | upmpdcli | 1.8.11 |
-| LuCI | 24.10 |
+| LuCI | 25.12 |
 
 `build.sh` automates the steps below; `build/packages.txt` holds the exact
 package list. Patches live in `patches/`.
@@ -20,10 +20,10 @@ package list. Patches live in `patches/`.
 ## 1. Base image (Image Builder)
 
 ```sh
-wget https://downloads.openwrt.org/releases/24.10.8/targets/bcm53xx/generic/\
-openwrt-imagebuilder-24.10.8-bcm53xx-generic.Linux-x86_64.tar.zst
-tar --zstd -xf openwrt-imagebuilder-24.10.8-bcm53xx-generic.Linux-x86_64.tar.zst
-cd openwrt-imagebuilder-24.10.8-bcm53xx-generic.Linux-x86_64
+wget https://downloads.openwrt.org/releases/25.12.6/targets/bcm53xx/generic/\
+openwrt-imagebuilder-25.12.6-bcm53xx-generic.Linux-x86_64.tar.zst
+tar --zstd -xf openwrt-imagebuilder-25.12.6-bcm53xx-generic.Linux-x86_64.tar.zst
+cd openwrt-imagebuilder-25.12.6-bcm53xx-generic.Linux-x86_64
 
 make image \
   PROFILE="asus_rt-ac88u" \
@@ -126,5 +126,5 @@ Pass `FILES=/path/to/ovl` to the image builder as shown above.
 
 ## 5. Result
 
-`bin/targets/bcm53xx/generic/openwrt-24.10.8-bcm53xx-generic-asus_rt-ac88u-squashfs.trx`
+`bin/targets/bcm53xx/generic/openwrt-25.12.6-bcm53xx-generic-asus_rt-ac88u-squashfs.trx`
 (~14 MB) — published as a GitHub Release asset.

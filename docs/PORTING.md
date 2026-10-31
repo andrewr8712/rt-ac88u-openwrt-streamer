@@ -127,8 +127,8 @@ the source. See `BENCHMARKS.md` for the performance baseline and
 
 ## 9. Known constraints
 
-- OpenWrt 24.10.x is the current base; 25.12 changes `opkg` → `apk` and the
-  toolchain, and is a separate rebase.
+- OpenWrt 25.12.x is the current base (`apk`, kernel 6.12, gcc 14); 24.10 used
+  `opkg` and an older toolchain.
 - BCM4366 Wi-Fi is not usable under OpenWrt; this build is wired-only.
 - DSD is DoP-only; DSD512 is not supported.
 - myMPD Lua scripting and FLAC/id3tag support are disabled in the custom build.

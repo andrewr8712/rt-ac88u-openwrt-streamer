@@ -1,27 +1,27 @@
 # Custom OpenWrt image — ASUS RT-AC88U music streamer
 
-OpenWrt 24.10.8 for the **ASUS RT-AC88U**, repurposed as a wired network music
+OpenWrt 25.12.6 for the **ASUS RT-AC88U**, repurposed as a wired network music
 streamer feeding a USB DAC (Topping DX5 II). Music lives on an SMB share; state
 survives reboots.
 
 | | |
 |---|---|
-| Image | `openwrt-24.10.8-bcm53xx-generic-asus_rt-ac88u-squashfs.trx` |
-| Size | ~14 MB |
-| Player | custom `mpd` 0.23.15 — DSD (DSF/DFF) + FLAC/AAC/MP3/OGG, ALSA `hw:0,0` |
+| Image | `openwrt-25.12.6-bcm53xx-generic-asus_rt-ac88u-squashfs.trx` |
+| Size | ~13 MB |
+| Player | custom `mpd` 0.23.16 — DSD (DSF/DFF) + FLAC/AAC/MP3/OGG, ALSA `hw:0,0` |
 | Music UI | **myMPD** — `http://<ip>:8080` |
 | Admin UI | **LuCI** — `http://<ip>/` |
 | UPnP | `upmpdcli` (DLNA/UPnP AV + OpenHome renderer) |
 | Library | SMB/CIFS client (`kmod-fs-cifs` + `cifsmount`) |
 | Persistence | MPD DB in `/etc/mpd`, myMPD state in `/etc/mympd` (overlay, not tmpfs) |
-| Measured | 16/44.1–24/192 PCM and DSD64/128/256 via DoP; 0 USB drops in the 9 m 49 s test |
+| Measured | 16/44.1–24/192 PCM and DSD64/128/256 via DoP; 0 USB drops in the 9 m 49 s test (24.10 baseline; DSD64 re-verified on 25.12) |
 
 ## Download
 
-[v1.1 release](https://github.com/andrewr8712/rt-ac88u-openwrt-streamer/releases/tag/v1.2)
+[v2.0 release](https://github.com/andrewr8712/rt-ac88u-openwrt-streamer/releases/tag/v2.0)
 
-`openwrt-24.10.8-bcm53xx-generic-asus_rt-ac88u-squashfs.trx` — 14,024,704 bytes
-SHA256 `ecd3b82fdd6425e94497d6e14acdbf5e4ddf7609aee13ba7d3ef73a716680bd5`
+`openwrt-25.12.6-bcm53xx-generic-asus_rt-ac88u-squashfs.trx` — 13,369,344 bytes
+SHA256 `612fe89737d871e51d78966e6ce174d88e77be41ab84bd003e87528de5a8a9fd`
 
 Verify with `sha256sum <file>` before flashing.
 
@@ -161,7 +161,7 @@ null-test or bit-error measurement has been performed.
 
 ## Measured performance
 
-Measured over **9 m 49 s** of continuous playback (40 samples at 15 s intervals)
+Measured over **9 m 49 s** of continuous playback (40 samples at 15 s intervals; 24.10.8 baseline, DSD64 re-verified on 25.12.6)
 on the RT-AC88U — dual Cortex-A9 @ 1.4 GHz, 512 MB RAM.
 
 | Source | MPD reports | ALSA `hw_params` | CPU avg / max |
@@ -193,7 +193,7 @@ baseline when repeating this build on different hardware.
 
 ## Tested on
 
-- ASUS RT-AC88U (bcm4709c0, 2× Cortex-A9, 512 MB), OpenWrt 24.10.8
+- ASUS RT-AC88U (bcm4709c0, 2× Cortex-A9, 512 MB), OpenWrt 25.12.6
 - Topping DX5 II on the **front USB 3.0** port (rear USB 2.0 caused `error -71`)
 - SMB3 share on a separate PC; myMPD, LuCI and M.A.L.P. clients
 - 9 m 49 s continuous playback across PCM and DSD — see [BENCHMARKS.md](BENCHMARKS.md)

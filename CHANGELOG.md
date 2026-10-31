@@ -1,5 +1,16 @@
 # Changelog
 
+## v2.0 — 2026-10-31
+
+Rebased on OpenWrt 25.12.6.
+
+- Kernel 6.12, gcc 14.3.0, `apk` package manager
+- MPD 0.23.16 built with `-Ddsd=true`
+- myMPD 26.1.1 rebuilt against the 25.12 staging tree
+- Image built via the 25.12 Image Builder with the custom overlay
+- DSD64 DoP re-verified on hardware; library and myMPD state restored
+- `/mnt/music` pre-created in the overlay
+
 ## v1.2 — 2026-10-30
 
 Configuration is now baked into the image; the setup script only handles SMB.
