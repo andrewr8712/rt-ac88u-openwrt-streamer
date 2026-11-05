@@ -62,7 +62,7 @@ The image assumes a class-compliant UAC2 DAC:
 
 - card 0, device 0 (`hw:0,0`)
 - no mixer control (`mixer_type "none"`)
-- DoP for DSD
+- native DSD by default (`dop "no"`); DoP fallback (`dop "yes"`)
 
 On a new device check:
 
@@ -74,7 +74,8 @@ cat /proc/asound/card0/stream0     # formats/rates the DAC advertises
 
 If the DAC is not card 0, change `device "hw:X,0"` in `ovl/etc/mpd.conf`.
 DSD over DoP needs PCM rates of 176.4, 352.8 or 705.6 kHz. Native DSD needs
-DAC-specific quirks and is not enabled here.
+a DAC that accepts the `DSD_U32_BE` altset; the DX5 II does. Another DAC may
+need its own quirk or the DoP fallback.
 
 USB port choice matters: on this router the rear USB 2.0 port caused `error -71`
 re-enumeration; the front USB 3.0 port was stable.
@@ -130,5 +131,6 @@ the source. See `BENCHMARKS.md` for the performance baseline and
 - OpenWrt 25.12.x is the current base (`apk`, kernel 6.12, gcc 14); 24.10 used
   `opkg` and an older toolchain.
 - BCM4366 Wi-Fi is not usable under OpenWrt; this build is wired-only.
-- DSD is DoP-only; DSD512 is not supported.
+- DSD is native by default (`dop "no"`); DoP is the fallback. DSD512 needs
+  native DSD.
 - myMPD Lua scripting and FLAC/id3tag support are disabled in the custom build.

@@ -4,11 +4,23 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); each version is dated
 and links to its diff or release.
 
-## Unreleased
+## [v2.1] - 2026-11-05
 
-Nothing yet.
+Native DSD is the default output.
 
-## [v2.0] — 2026-10-31
+### Added
+
+- Native DSD: MPD opens the DAC's `DSD_U32_BE` altset (Interface 1, Altset 3).
+  Verified at DSD128 (176.4 kHz carrier) and DSD512 (705.6 kHz).
+- README native-DSD tests.
+
+### Changed
+
+- `dop "no"` is the default; a fresh install uses native DSD. DoP remains
+  available with `dop "yes"` and cannot carry DSD512.
+- An existing install keeps its `/etc/mpd.conf`; change `dop` by hand to switch.
+
+## [v2.0] - 2026-10-31
 
 Rebased onto OpenWrt 25.12.6.
 
@@ -103,6 +115,7 @@ Known limitations at this release: no Wi-Fi (BCM4366), DoP-only DSD, no
 ALAC/WMA/APE, myMPD Lua scripting disabled, UPnP library browsing needs an added
 media server.
 
+[v2.1]: https://github.com/andrewr8712/rt-ac88u-openwrt-streamer/releases/tag/v2.1
 [v2.0]: https://github.com/andrewr8712/rt-ac88u-openwrt-streamer/compare/v1.2...v2.0
 [v1.2]: https://github.com/andrewr8712/rt-ac88u-openwrt-streamer/compare/v1.1...v1.2
 [v1.1]: https://github.com/andrewr8712/rt-ac88u-openwrt-streamer/compare/v1.0...v1.1

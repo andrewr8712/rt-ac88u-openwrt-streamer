@@ -51,12 +51,16 @@ dmesg | grep -c 'USB disconnect'
 
 ## DSD files are silent or converted
 
-- `dop "yes"` must be present in the `audio_output` block, and `mixer_type`
-  must be `"none"`.
-- DoP needs the DAC to accept 176.4 kHz (DSD64), 352.8 kHz (DSD128) or
-  705.6 kHz (DSD256) PCM.
-- DSD256 has been verified at 705.6 kHz; **DSD512 is unsupported** (it would
-  need native DSD, not enabled in this build).
+The default output is native DSD (`dop "no"`). Check:
+
+- `dop "no"` is in the `audio_output` block, and `mixer_type` is `"none"`.
+- `cat /proc/asound/card0/pcm0p/sub0/hw_params` shows `DSD_U32_BE` at 176400 or
+  705600 Hz for native DSD.
+- If it shows `S32_LE` at 176400, 352800 or 705600 Hz, the output is DoP
+  (`dop "yes"`).
+- Native DSD needs a DAC that accepts the `DSD_U32_BE` altset. The DX5 II does;
+  another DAC may need `dop "yes"`.
+- DSD64, DSD128 and DSD256 work over DoP; DSD512 needs native DSD.
 - MPD logs: `logread | grep -i mpd`.
 
 ## SMB share will not mount
@@ -103,4 +107,5 @@ LuCI is on port **80**. If another service took the port, change
 - `mixer_type "none"`.
 - No `format`, `samplerate_converter` or ALSA plugins in the chain.
 - DAC volume at 0 dB / fixed.
-- DoP only for DSD.
+- DSD is native by default (`dop "no"`); DoP only if the DAC needs it
+  (`dop "yes"`).

@@ -1,7 +1,11 @@
 # RT-AC88U OpenWrt Music Streamer — Project Report
 
-**Date:** 30 October 2026 (v2.0 rebase 31 October) · **Status:** Delivered, deployed and validated on hardware
+**Date:** 30 October 2026 (v2.0 rebase 31 October) · **Status:** delivered and running on the router
 **Release:** v2.0 — OpenWrt 25.12.6
+
+> **v2.0 snapshot.** This report covers the v2.0 image, which was DoP-only. v2.1
+> added native DSD and verified DSD512; see the
+> [v2.1 release](https://github.com/andrewr8712/rt-ac88u-openwrt-streamer/releases/tag/v2.1).
 
 ---
 
@@ -131,7 +135,8 @@ These only surfaced on real hardware; all are now in `post-flash-setup.sh`.
 | DSD256 (DoP) | 705600 Hz | 11.6 / 12.7 % |
 
 Overall 5.85 % average CPU, 13.3 % peak, zero USB disconnects, no xruns.
-**DSD256 over DoP works**; only DSD512 remains out of reach.
+**DSD256 over DoP works**; for this v2.0 image, DSD512 is out of reach (v2.1
+added native DSD).
 
 ### Raw microbenchmarks
 

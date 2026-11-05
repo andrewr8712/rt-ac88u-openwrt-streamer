@@ -14,7 +14,7 @@ survives reboots.
 | UPnP | `upmpdcli` (DLNA/UPnP AV + OpenHome renderer) |
 | Library | SMB/CIFS client (`kmod-fs-cifs` + `cifsmount`) |
 | Persistence | MPD DB in `/etc/mpd`, myMPD state in `/etc/mympd` (overlay, not tmpfs) |
-| Measured | 16/44.1–24/192 PCM; native DSD128/512 (`DSD_U32_BE`); 0 USB drops in the 9 m 49 s DoP baseline (24.10; DSD64 re-verified on 25.12); 62.5 min load test 2026-11-05 (240/240 playing, 0 stalls) |
+| Measured | 16/44.1–24/192 PCM; native DSD128/512 (`DSD_U32_BE`); see [Measured performance](#measured-performance-dop-baseline), [Native DSD](#native-dsd) and the [load test](docs/STABILITY-2026-11-05.md) |
 
 ## Download
 
@@ -187,6 +187,9 @@ null-test or bit-error measurement has been performed.
 
 ## Measured performance (DoP baseline)
 
+The table below is the DoP baseline from the 24.10 build, kept for comparison.
+The current image defaults to native DSD; see [Native DSD](#native-dsd).
+
 Measured over **9 m 49 s** of continuous playback (40 samples at 15 s intervals; 24.10.8 baseline, DSD64 re-verified on 25.12.6)
 on the RT-AC88U — dual Cortex-A9 @ 1.4 GHz, 512 MB RAM.
 
@@ -244,7 +247,7 @@ compatibility report.
 ## Support boundary
 
 Provided as-is for this exact router + DAC combination. Other hardware needs the
-porting changes described in [docs/BUILD.md](docs/BUILD.md); no warranty, and
+porting changes described in [docs/PORTING.md](docs/PORTING.md); no warranty, and
 test before relying on it.
 
 A 62.5-minute load test on 2026-11-05 — both cores saturated and a 2 GB CIFS read

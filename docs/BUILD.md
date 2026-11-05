@@ -120,7 +120,7 @@ Notes:
 |---|---|
 | `usr/bin/mpd` | DSD-enabled MPD binary |
 | `usr/bin/mympd` | myMPD binary (assets embedded) |
-| `etc/mpd.conf` | MPD config: `hw:0,0`, `mixer_type "none"`, `dop "yes"`, `/etc/mpd` state |
+| `etc/mpd.conf` | MPD config: `hw:0,0`, `mixer_type "none"`, `dop "no"` (native DSD), `/etc/mpd` state |
 | `etc/init.d/mpd` | MPD init with `GROUP="audio"` |
 | `etc/init.d/mympd` | procd service, runs as `mympd` |
 | `etc/rc.local` | waits on `/proc/mounts`, runs `mount -a`, restarts MPD |
