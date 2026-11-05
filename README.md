@@ -246,6 +246,11 @@ Provided as-is for this exact router + DAC combination. Other hardware needs the
 porting changes described in [docs/BUILD.md](docs/BUILD.md); no warranty, and
 test before relying on it.
 
+A 62-minute load test on 2026-11-05 — both cores saturated and a 2 GB CIFS read while
+the queue played — is in [docs/STABILITY-2026-11-05.md](docs/STABILITY-2026-11-05.md):
+playback stayed in `play` for all 240 samples, with no stalls, pauses, MPD errors,
+USB/CIFS errors or ALSA xruns.
+
 ## Native DSD
 
 The default output uses `dop "no"`: MPD opens the Topping's `DSD_U32_BE` altset
