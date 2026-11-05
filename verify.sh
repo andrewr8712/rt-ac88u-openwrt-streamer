@@ -47,7 +47,8 @@ else
 fi
 
 # ---- documentation facts ---------------------------------------------------
-grep -q 'DSD64/128/256' README.md 2>/dev/null || bad "README does not state DSD64/128/256"
+grep -q 'DSD64/128/256' README.md 2>/dev/null && grep -q 'native DSD128/512' README.md 2>/dev/null \
+	|| bad "README does not state the DSD formats"
 grep -q 'DSD64/128/256' docs/HARDWARE.md 2>/dev/null || bad "HARDWARE does not state DSD64/128/256"
 grep -q 'DSD256' docs/TROUBLESHOOTING.md 2>/dev/null || bad "TROUBLESHOOTING does not mention DSD256"
 grep -rq '109 MB' README.md docs WORKFLOW.md PROJECT-REPORT.md 2>/dev/null \

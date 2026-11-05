@@ -264,7 +264,7 @@ Verified on 2026-11-05:
 | DSD128 | `dsd128:2` | `DSD_U32_BE` | 176400 Hz |
 | DSD512 | `dsd512:2` | `DSD_U32_BE` | 705600 Hz (2.0 GB Polly Gibbons test track) |
 
-DSD64 and DSD256 use the same native path but were not re-measured after the switch.
+The streamer handles DSD64/128/256 (DoP baseline) and native DSD128/512; DSD64 and DSD256 use the same native path but were not re-measured after the switch.
 DoP is still available with `dop "yes"`; it cannot carry DSD512 here because that
 would need a 1.536 MHz PCM carrier, beyond the DAC's 768 kHz input limit.
 
