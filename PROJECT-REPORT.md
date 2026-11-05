@@ -1,9 +1,9 @@
-# RT-AC88U OpenWrt Music Streamer — Project Report
+# RT-AC88U OpenWrt music streamer: project report
 
-**Date:** 30 October 2026 (v2.0 rebase 31 October) · **Status:** delivered and running on the router
-**Release:** v2.0 — OpenWrt 25.12.6
+Date: 30 October 2026 (v2.0 rebase 31 October). Status: delivered and running on the router.
+Release: v2.0, OpenWrt 25.12.6
 
-> **v2.0 snapshot.** This report covers the v2.0 image, which was DoP-only. v2.1
+> v2.0 snapshot. This report covers the v2.0 image, which was DoP-only. v2.1
 > added native DSD and verified DSD512; see the
 > [v2.1 release](https://github.com/andrewr8712/rt-ac88u-openwrt-streamer/releases/tag/v2.1).
 
@@ -36,14 +36,14 @@ the real router.
 | `deepseek-flash` | 487 | 319,208 | 177,539,584 | 439,476 | 178,298,268 |
 | **Total** | **493** | **354,482** | **177,674,112** | **457,257** | **178,485,851** |
 
-- Cache hit ratio: **99.80 %** of all prompt tokens
+- Cache hit ratio: 99.80 % of all prompt tokens
 - Average per call: ~362,000 tokens total, ~927 output tokens
 - Cache writes: 0
 - Search/fetch requests: 11 (free until 1 Nov 2026)
 
 The large total is normal for an agentic session: every call re-sends the
 conversation context, and almost all of it is served from the prompt cache.
-Only ~354 K tokens were uncached input across the whole project.
+Only ~354 K tokens were uncached input across the project.
 
 ---
 
@@ -51,7 +51,7 @@ Only ~354 K tokens were uncached input across the whole project.
 
 ### Rates used
 
-Source: [DeepSeek API — Models & Pricing](https://api-docs.deepseek.com/quick_start/pricing/), accessed 30 Oct 2026. USD per 1M tokens.
+Source: [DeepSeek API pricing](https://api-docs.deepseek.com/quick_start/pricing/), accessed 30 Oct 2026. USD per 1M tokens.
 
 | Model | Cache hit (off-peak / peak) | Cache miss (off-peak / peak) | Output (off-peak / peak) |
 |---|---|---|---|
@@ -70,7 +70,7 @@ Peak hours: 01:00–04:00 and 06:00–10:00 UTC, Monday–Friday (Chinese public
 | — of which off-peak | | | $0.3308 |
 | **Total** | **493** | **347 / 146** | **$1.4805** |
 
-**Rounded total: $1.48 USD** — average $0.0030 per model call.
+Rounded total: $1.48 USD, an average of $0.0030 per model call.
 
 Notes:
 
@@ -111,7 +111,7 @@ These only surfaced on real hardware; all are now in `post-flash-setup.sh`.
 | Symptom | Root cause | Fix |
 |---|---|---|
 | `Failed to open hw:0,0` | `mpd` not in `audio` group (`/dev/snd` is `root:audio 660`) | run MPD with `GROUP="audio"`; add `mpd` to `audio` |
-| DAC repeatedly re-enumerating (`error -71`, “attempt power cycle”) | marginal cable/USB2 port | stable port + cable; **0 disconnects** afterwards |
+| DAC repeatedly re-enumerating (`error -71`, “attempt power cycle”) | marginal cable/USB2 port | stable port + cable; 0 disconnects afterwards |
 | MPD DB lost every reboot | `db_file` under `/var` (tmpfs) | move DB/state/playlists to `/etc/mpd` |
 | myMPD settings reset | workdir under `/var`; uid 89 collided with upmpdcli | workdir `/etc/mympd`, uid 91 |
 | myMPD forced HTTPS with certificate errors | `ssl=true` + HSTS cached by browser | `ssl=false`; clear browser HSTS |
@@ -135,7 +135,7 @@ These only surfaced on real hardware; all are now in `post-flash-setup.sh`.
 | DSD256 (DoP) | 705600 Hz | 11.6 / 12.7 % |
 
 Overall 5.85 % average CPU, 13.3 % peak, zero USB disconnects, no xruns.
-**DSD256 over DoP works**; for this v2.0 image, DSD512 is out of reach (v2.1
+DSD256 over DoP works; for this v2.0 image, DSD512 is out of reach (v2.1
 added native DSD).
 
 ### Raw microbenchmarks
@@ -186,10 +186,10 @@ the 25.12.6 image, so debloating would be cosmetic rather than necessary.
 
 - Usage read from DeepSeek Harness session transcripts, one record per model call
   (`inputTokens`, `cacheReadTokens`, `outputTokens`).
-- **Model attribution:** records carry no model field. Calls before the recorded
+- Model attribution: records carry no model field. Calls before the recorded
   pro→flash switch (09:59 AWST) are attributed to pro; all later calls, and the
   follow-up session, to flash.
-- **Peak/off-peak** determined per call from its UTC timestamp; 30 Oct 2026 is a
+- Peak/off-peak determined per call from its UTC timestamp; 30 Oct 2026 is a
   Friday, not a Chinese public holiday.
 - Search/fetch requests excluded (free until 1 Nov 2026).
 - Prices as published on the date above and may change.

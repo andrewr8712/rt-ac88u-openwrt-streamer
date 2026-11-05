@@ -1,10 +1,10 @@
-# Raw performance baseline — ASUS RT-AC88U
+# Raw performance baseline for the ASUS RT-AC88U
 
 Reference numbers for comparing this build against the same setup on other
 routers. Measured on the live device, with the benchmark source and raw output
 in [`bench/`](bench/).
 
-> These are **microbenchmarks**, not scores from sysbench/CoreMark. Compare only
+> These are microbenchmarks, not scores from sysbench/CoreMark. Compare only
 > like-for-like: same binary, same flags, same kernel/arch class.
 
 ## Device under test
@@ -60,8 +60,8 @@ Pointer-chase latency (random permutation, 5 M accesses):
 
 Interpretation:
 
-- 4 KB fits L1; 64 KB still mostly L2 (256 KB L2 per core) — hence the jump at 1 MB.
-- **Read bandwidth is far below write bandwidth.** The Cortex-A9 has no hardware
+- 4 KB fits L1; 64 KB still mostly L2 (256 KB L2 per core), hence the jump at 1 MB.
+- Read bandwidth is far below write bandwidth. The Cortex-A9 has no hardware
   prefetcher and limited outstanding loads, so a single core streaming from DDR
   is latency/MLP-limited. Writes are buffered and retire faster. `memcpy` is
   read-limited, so it tracks the read number.
@@ -78,7 +78,7 @@ Interpretation:
 | `/etc` (UBIFS overlay, 32 MB) | **51.8** | **89.4** | NAND + ECC, small file |
 | `/mnt/music` (CIFS, cold read) | — | **11.1** | server-dependent¹ |
 
-¹ The SMB number reflects the **server, its disk and the network path**, not the
+¹ The SMB number reflects the server, its disk and the network path, not the
 router's CPU. It is included to show the end-to-end library path; do not use it
 to compare routers unless both use the same server and share.
 
@@ -140,12 +140,11 @@ sync; echo 3 > /proc/sys/vm/drop_caches
 
 ## Using this as a comparison baseline
 
-- Use the **same binary** (same `-O2`, same source), same block sizes, same
-  buffer sizes. Different flags change CPU numbers by tens of percent.
-- Run from an **idle** system; stop playback first.
-- Note the **kernel version** — scheduler/ARM patches affect FP and memory.
-- Record **RAM size** and whether the buffer fits in lowmem; very small routers
+- Use the same binary (`-O2`, same source), block sizes and buffer sizes. Different flags change CPU numbers by tens of percent.
+- Run from an idle system; stop playback first.
+- Note the kernel version; scheduler and ARM patches affect FP and memory.
+- Record the RAM size and whether the buffer fits in lowmem; very small routers
   may swap or OOM at 64 MB, so drop to `membw 16` and note it.
-- Compare **within the same class** (ARMv7 vs ARMv8, NAND vs eMMC). The absolute
+- Compare within the same class (ARMv7 vs ARMv8, NAND vs eMMC). The absolute
   numbers are not comparable across architectures.
 - Single run only; treat differences under ~5 % as noise.

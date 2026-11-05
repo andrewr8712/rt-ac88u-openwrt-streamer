@@ -1,7 +1,7 @@
 # Build notes
 
-How this image was produced. Everything is reproducible from an x86_64 Linux
-host with ~15 GB free disk, `wget`, `zstd`, `tar`, `git`, `cmake`, `gcc`.
+How this image was produced. The steps below reproduce it from an x86_64
+Linux host with ~15 GB free disk, `wget`, `zstd`, `tar`, `git`, `cmake`, `gcc`.
 
 ## 0. Pinned versions
 
@@ -14,8 +14,7 @@ host with ~15 GB free disk, `wget`, `zstd`, `tar`, `git`, `cmake`, `gcc`.
 | upmpdcli | 1.8.11 |
 | LuCI | 25.12 |
 
-`build.sh` automates the steps below; `build/packages.txt` holds the exact
-package list. Patches live in `patches/`.
+`build.sh` automates the steps below; `build/packages.txt` holds the package list. Patches live in `patches/`.
 
 ## 1. Base image (Image Builder)
 
@@ -58,7 +57,7 @@ decoded. The fix is a rebuild with `-Ddsd=true`.
    header that this boost release does not ship; `std::string_view` works).
 4. Remove the `mpd-full` and `mpd-avahi-service` variants if you only build mini
    (the directory target otherwise builds PulseAudio deps too).
-5. Build with `make package/feeds/packages/mpd/compile` **or** cross-compile
+5. Build with `make package/feeds/packages/mpd/compile` or cross-compile
    manually with meson against the SDK staging libs:
 
 ```sh
@@ -82,8 +81,8 @@ myMPD is not packaged in the 25.12 feeds, so it is cross-compiled with cmake.
 
 Build its two missing dependencies into the SDK staging dir first:
 
-- **PCRE2 10.42** — `--host=arm-openwrt-linux-muslgnueabi --disable-static --enable-shared --enable-pcre2-8`
-- **OpenSSL 3.0.21** — `./Configure linux-armv4 no-tests shared --cross-compile-prefix=arm-openwrt-linux-muslgnueabi-`
+- PCRE2 10.42: `--host=arm-openwrt-linux-muslgnueabi --disable-static --enable-shared --enable-pcre2-8`
+- OpenSSL 3.0.21: `./Configure linux-armv4 no-tests shared --cross-compile-prefix=arm-openwrt-linux-muslgnueabi-`
 
 Then:
 
@@ -104,7 +103,7 @@ cmake --build build -j$(nproc)
 Notes:
 
 - `MYMPD_EMBEDDED_LIBMPDCLIENT=OFF` lets cmake notice the staging libmpdclient is
-  too old (2.22 < 2.26) and fall back to the bundled copy **with** the required
+  too old (2.22 < 2.26) and fall back to the bundled copy with the required
   compile define. Forcing `ON` skips that define and mixes headers.
 - `-Werror` in `CMakeLists.txt` breaks the vendored mongoose build on GCC 14;
   remove that flag.
@@ -133,9 +132,9 @@ Pass `FILES=/path/to/ovl` to the image builder as shown above.
 ## 5. Result
 
 `bin/targets/bcm53xx/generic/openwrt-25.12.6-bcm53xx-generic-asus_rt-ac88u-squashfs.trx`
-(13,369,344 bytes) — published as a GitHub Release asset.
+(13,369,344 bytes), published as a GitHub Release asset.
 
-The exact installed set is captured in
+The installed set is captured in
 [`manifests/openwrt-25.12.6-bcm53xx-generic-asus_rt-ac88u.manifest`](../manifests/openwrt-25.12.6-bcm53xx-generic-asus_rt-ac88u.manifest)
 (167 packages, read back from the device with `apk info -v`). Diff your build
 against it when a package silently changes.

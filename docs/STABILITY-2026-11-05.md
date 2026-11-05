@@ -1,18 +1,18 @@
-# Streamer load/stability test — 2026-11-05
+# Streamer load and stability test, 2026-11-05
 
-**Device:** ASUS RT-AC88U · OpenWrt 25.12.6 · MPD 0.23.16 (DSD-enabled)  
-**DAC:** Topping DX5 II over USB (`hw:0,0`, native DSD)  
-**Test window:** 2026-11-05 16:20–17:22 AWST (host clock; the streamer's own clock was ~2 days behind)  
-**Samples:** 240 at 15 s intervals · **Duration:** 62.5 min  
-**Queue:** the full collection, shuffle enabled (`random: 1`)
+Device: ASUS RT-AC88U, OpenWrt 25.12.6, MPD 0.23.16 (DSD-enabled)<br>
+DAC: Topping DX5 II over USB (`hw:0,0`, native DSD)<br>
+Test window: 2026-11-05 16:20–17:22 AWST (host clock; the streamer's own clock was ~2 days behind)<br>
+Samples: 240 at 15 s intervals. Duration: 62.5 min<br>
+Queue: the collection, shuffle enabled (`random: 1`)
 
 ## Verdict
 
-**Playback was never interrupted and never stalled.** All 240 samples show MPD in `play`; there were **240/240** playing samples, **0** pauses/stops, **0** MPD errors, **0** stall events, **0** USB/CIFS errors and **0** ALSA xruns/underruns. The DAC stayed in `Status: Running` throughout, including during both cores at ~100 % and a 2 GB CIFS read.
+Playback was never interrupted and never stalled. All 240 samples show MPD in `play`: 240/240 playing samples, 0 pauses or stops, 0 MPD errors, 0 stall events, 0 USB/CIFS errors and 0 ALSA xruns or underruns. The DAC stayed in `Status: Running` throughout, including during both cores at ~100 % and a 2 GB CIFS read.
 
-- Track changes: **16**, all clean transitions via shuffle — the only silences are the intended gaps between tracks and the DAC re-locking to a new rate, not transport stutters.
-- Peak temperature: **76.6 °C**; memory available never below **311 MB** of 497 MB; peak load **4.27**.
-- CPU peaked at **99.8 %**; MPD itself never needed more than a few percent.
+- Track changes: 16, all clean transitions via shuffle. The only silences are the intended gaps between tracks and the DAC re-locking to a new rate, not transport stutters.
+- Peak temperature 76.6 °C; memory available never below 311 MB of 497 MB; peak load 4.27.
+- CPU peaked at 99.8 %; MPD itself never needed more than a few percent.
 
 ![Load test](stability-2026-11-05.png)
 
@@ -42,11 +42,11 @@ Every 15 s the monitor recorded MPD `status`/`currentsong`, ALSA `hw_params` and
 
 ## Playback continuity
 
-- **MPD state:** play 240; no `pause`, `stop` or reconnect sample.
-- **MPD errors:** 0; **stall events:** 0 (definition: a playing sample whose `elapsed` advanced by less than 40 % of the wall time over 5+ s, excluding track changes).
-- **USB / CIFS / xrun counters:** `dmesg` 0, `logread` 0 (cumulative error-pattern matches at the end). **DAC:** Running 240.
-- **Track transitions:** 16 changes; 1 state event (the initial `'' -> play` only).
-- **Audio formats seen:** `44100:16:2` × 127, `96000:24:2` × 43, `48000:24:2` × 36, `44100:24:2` × 34; **ALSA:** `S32_LE` @ 44100 Hz × 161, `S32_LE` @ 96000 Hz × 43, `S32_LE` @ 48000 Hz × 36.
+- MPD state: play 240; no `pause`, `stop` or reconnect sample.
+- MPD errors: 0; stall events: 0 (definition: a playing sample whose `elapsed` advanced by less than 40 % of the wall time over 5+ s, excluding track changes).
+- USB, CIFS and xrun counters: `dmesg` 0, `logread` 0 (cumulative error-pattern matches at the end). DAC: Running 240.
+- Track transitions: 16 changes; 1 state event (the initial `'' -> play` only).
+- Audio formats seen: `44100:16:2` × 127, `96000:24:2` × 43, `48000:24:2` × 36, `44100:24:2` × 34; ALSA: `S32_LE` @ 44100 Hz × 161, `S32_LE` @ 96000 Hz × 43, `S32_LE` @ 48000 Hz × 36.
 
 The streamer fed the DAC continuously; the CIFS read of the DSD512 test track ran alongside the queue without producing any USB or SMB error. The normal track-change gap and the DAC's rate re-lock are the only discontinuities, and they are expected.
 
@@ -60,6 +60,6 @@ The streamer fed the DAC continuously; the CIFS read of the DSD512 test track ra
 
 ## Raw data
 
-- `stress.csv` — 240 rows, the full sample series
-- `events.log` — track changes, state changes, stalls, error-counter changes
+- `stress.csv`, 240 rows, the sample series
+- `events.log`, track changes, state changes, stalls, error-counter changes
 - The test monitor and remote load script are in the same `.stress/` directory

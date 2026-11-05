@@ -24,9 +24,9 @@ Native DSD is the default output.
 
 Rebased onto OpenWrt 25.12.6.
 
-**Breaking:** the package manager is now `apk` instead of `opkg`, and the kernel
+Breaking: the package manager is now `apk` instead of `opkg`, and the kernel
 moves from 6.6 to 6.12. A v1.x `opkg` workflow does not carry over. Upgrading an
-existing install needs `sysupgrade` — see *Upgrade an existing install* in the
+existing install needs `sysupgrade`; see *Upgrade an existing install* in the
 [README](README.md).
 
 ### Added
@@ -49,7 +49,7 @@ existing install needs `sysupgrade` — see *Upgrade an existing install* in the
   `/etc/sysupgrade.conf` preserve list (credentials, `fstab`, SSH keys and the
   MPD database were missing); the keep list was re-added.
 
-## [v1.2] — 2026-10-30
+## [v1.2] - 2026-10-30
 
 Configuration is now baked into the image; the setup script handles SMB only.
 
@@ -68,7 +68,7 @@ Configuration is now baked into the image; the setup script handles SMB only.
 - `bench.c`: per-thread CPU results (removes a data race) and a local accumulator
   in the latency loop.
 
-## [v1.1] — 2026-10-30
+## [v1.1] - 2026-10-30
 
 Privacy and hardening release.
 
@@ -92,7 +92,7 @@ Privacy and hardening release.
 
 - Personal identifiers scrubbed from scripts, docs and benchmark output.
 
-## [v1.0] — 2026-10-30
+## [v1.0] - 2026-10-30
 
 First public image for the ASUS RT-AC88U as a network music streamer.
 
