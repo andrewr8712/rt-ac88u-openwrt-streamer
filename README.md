@@ -14,7 +14,7 @@ survives reboots.
 | UPnP | `upmpdcli` (DLNA/UPnP AV + OpenHome renderer) |
 | Library | SMB/CIFS client (`kmod-fs-cifs` + `cifsmount`) |
 | Persistence | MPD DB in `/etc/mpd`, myMPD state in `/etc/mympd` (overlay, not tmpfs) |
-| Measured | 16/44.1–24/192 PCM; native DSD128/512 (`DSD_U32_BE`); 0 USB drops in the 9 m 49 s DoP baseline (24.10; DSD64 re-verified on 25.12) |
+| Measured | 16/44.1–24/192 PCM; native DSD128/512 (`DSD_U32_BE`); 0 USB drops in the 9 m 49 s DoP baseline (24.10; DSD64 re-verified on 25.12); 62.5 min load test 2026-11-05 (240/240 playing, 0 stalls) |
 
 ## Download
 
@@ -223,6 +223,7 @@ baseline when repeating this build on different hardware.
 - Topping DX5 II on the **front USB 3.0** port (rear USB 2.0 caused `error -71`)
 - SMB3 share on a separate PC; myMPD, LuCI and M.A.L.P. clients
 - 9 m 49 s continuous playback across PCM and DSD — see [BENCHMARKS.md](BENCHMARKS.md)
+- 62.5 min under full CPU and CIFS load on 2026-11-05 — see [docs/STABILITY-2026-11-05.md](docs/STABILITY-2026-11-05.md)
 
 ## Security
 
@@ -246,10 +247,11 @@ Provided as-is for this exact router + DAC combination. Other hardware needs the
 porting changes described in [docs/BUILD.md](docs/BUILD.md); no warranty, and
 test before relying on it.
 
-A 62-minute load test on 2026-11-05 — both cores saturated and a 2 GB CIFS read while
-the queue played — is in [docs/STABILITY-2026-11-05.md](docs/STABILITY-2026-11-05.md):
-playback stayed in `play` for all 240 samples, with no stalls, pauses, MPD errors,
-USB/CIFS errors or ALSA xruns.
+A 62.5-minute load test on 2026-11-05 — both cores saturated and a 2 GB CIFS read
+while the queue played — is in [docs/STABILITY-2026-11-05.md](docs/STABILITY-2026-11-05.md):
+**240/240 samples in `play`**, 0 stalls, 0 pauses/stops, 0 MPD/USB/CIFS/ALSA errors,
+16 clean track changes; peak CPU 99.8 %, peak temperature 76.6 °C, memory available
+never below 311 MB.
 
 ## Native DSD
 
