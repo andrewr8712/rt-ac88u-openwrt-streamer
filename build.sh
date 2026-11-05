@@ -2,14 +2,19 @@
 # build.sh - rebuild the streamer binaries and the flashable image.
 #
 # Required environment:
-#   SDK=/path/to/openwrt-sdk-24.10.8-bcm53xx-generic...
-#   IMAGEBUILDER=/path/to/openwrt-imagebuilder-24.10.8-bcm53xx-generic...
-#   SRC_MPD=/path/to/mpd-0.23.15
+#   SDK=/path/to/openwrt-sdk-25.12.6-bcm53xx-generic...
+#   IMAGEBUILDER=/path/to/openwrt-imagebuilder-25.12.6-bcm53xx-generic...
+#   SRC_MPD=/path/to/mpd-0.23.16
 #   SRC_MYMPD=/path/to/myMPD-26.1.1
 #
 # Optional: OUT=directory for the resulting .trx (default: ./out)
+#
+# Run as a normal user. The 25.12 Image Builder uses apk, which must own the
+# files it unpacks; as a non-root user apk fails with "failed to preserve
+# owner" errors, so the image step is wrapped in `unshare -r` to give it a
+# private uid-0 namespace. Running as root skips the wrapper.
 set -eu
-ROOT=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+ROOT=$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)
 : "${SDK:?set SDK}" "${IMAGEBUILDER:?set IMAGEBUILDER}"
 : "${SRC_MPD:?set SRC_MPD}" "${SRC_MYMPD:?set SRC_MYMPD}"
 OUT=${OUT:-$ROOT/out}
@@ -17,10 +22,12 @@ mkdir -p "$OUT"
 
 TC=$SDK/staging_dir/toolchain-arm_cortex-a9_gcc-14.3.0_musl_eabi/bin
 TGT=$SDK/staging_dir/target-arm_cortex-a9_musl_eabi
-export STAGING_DIR=$SDK/staging_dir
-export PKG_CONFIG_LIBDIR=$TGT/usr/lib/pkgconfig:$TGT/usr/share/pkgconfig
-export PKG_CONFIG_SYSROOT_DIR=$TGT
-export BOOST_ROOT=$TGT/usr BOOST_INCLUDEDIR=$TGT/usr/include BOOST_LIBRARYDIR=$TGT/usr/lib
+export STAGING_DIR="$SDK/staging_dir"
+export PKG_CONFIG_LIBDIR="$TGT/usr/lib/pkgconfig:$TGT/usr/share/pkgconfig"
+export PKG_CONFIG_SYSROOT_DIR="$TGT"
+export BOOST_ROOT="$TGT/usr"
+export BOOST_INCLUDEDIR="$TGT/usr/include"
+export BOOST_LIBRARYDIR="$TGT/usr/lib"
 PREFIX_MAP="-ffile-prefix-map=$ROOT=/build -fmacro-prefix-map=$ROOT=/build"
 
 echo ">> MPD"
@@ -67,7 +74,14 @@ cp "$SRC_MPD/build/mpd" "$ROOT/ovl/usr/bin/mpd"
 cp "$SRC_MYMPD/build-openwrt/bin/mympd" "$ROOT/ovl/usr/bin/mympd"
 
 echo ">> image"
-make -C "$IMAGEBUILDER" image PROFILE=asus_rt-ac88u \
+run_make() {
+	if [ "$(id -u)" -eq 0 ]; then
+		make "$@"
+	else
+		unshare -r make "$@"
+	fi
+}
+run_make -C "$IMAGEBUILDER" image PROFILE=asus_rt-ac88u \
 	PACKAGES="$(sed -n 's/^PACKAGES="\(.*\)"/\1/p' "$ROOT/build/packages.txt")" \
 	FILES="$ROOT/ovl"
 cp "$IMAGEBUILDER"/bin/targets/bcm53xx/generic/*ac88u*squashfs.trx "$OUT/"

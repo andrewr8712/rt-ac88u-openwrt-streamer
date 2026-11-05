@@ -7,7 +7,9 @@
 set -u
 fail=0
 ok()  { printf 'ok    %s\n' "$1"; }
-bad() { printf 'FAIL  %s\n' "$1"; fail=1; }
+# bad() must return 0: the `grep -q ... && bad ... || ok ...` idiom used below
+# relies on it, so a failing check never falls through to the "ok" branch.
+bad() { printf 'FAIL  %s\n' "$1"; fail=1; return 0; }
 
 READELF="${READELF:-readelf}"
 
@@ -50,10 +52,28 @@ grep -q 'DSD64/128/256' docs/HARDWARE.md 2>/dev/null || bad "HARDWARE does not s
 grep -q 'DSD256' docs/TROUBLESHOOTING.md 2>/dev/null || bad "TROUBLESHOOTING does not mention DSD256"
 grep -rq '109 MB' README.md docs WORKFLOW.md PROJECT-REPORT.md 2>/dev/null \
 	&& bad "stale 109 MB overlay figure" || ok "overlay size consistent"
-grep -rq 'loglevel=3\|loglevel 3' README.md docs post-flash-setup.sh 2>/dev/null \
+grep -rq 'loglevel=3\|loglevel 3' README.md docs PROJECT-REPORT.md WORKFLOW.md post-flash-setup.sh 2>/dev/null \
 	&& bad "stale loglevel 3" || ok "loglevel is 4 (warn)"
 grep -q '/var/lib/mympd' docs/TROUBLESHOOTING.md 2>/dev/null \
 	&& bad "TROUBLESHOOTING still references /var/lib/mympd" || ok "troubleshooting paths current"
+
+# The two benchmark documents drift apart easily: both must quote the same run,
+# and the numbers in BENCHMARKS.md are the authoritative ones (they carry the raw
+# output block).
+if grep -q '199\.30' BENCHMARKS.md 2>/dev/null \
+	&& grep -q '199\.30' PROJECT-REPORT.md 2>/dev/null \
+	&& ! grep -Eq '199\.8([^0-9]|$)|72\.7 °C|0\.36 GB/s' BENCHMARKS.md PROJECT-REPORT.md 2>/dev/null; then
+	ok "benchmark figures agree"
+else
+	bad "benchmark figures disagree between BENCHMARKS.md and PROJECT-REPORT.md"
+fi
+
+if grep -q '13,369,344' README.md 2>/dev/null \
+	&& grep -q '13,369,344' PROJECT-REPORT.md 2>/dev/null; then
+	ok "v2.0 image size consistent"
+else
+	bad "v2.0 image size missing or inconsistent in README/PROJECT-REPORT"
+fi
 
 # ---- privacy ---------------------------------------------------------------
 if grep -rIn --exclude-dir=.git -E '10\.0\.0\.[0-9]+|/home/andrew|SMB_USER="andrew"' \

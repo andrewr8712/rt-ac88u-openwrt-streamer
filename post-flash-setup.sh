@@ -6,19 +6,24 @@
 # order) is baked into the image overlay. This script only handles what cannot
 # be baked: SMB credentials, the mount entry, and verification.
 #
-# EDIT THE SMB SETTINGS BELOW before running.
+# The SMB settings come from the environment, so no password is ever stored in
+# this tracked file. Usage (from your PC):
 #
-# Usage (from your PC):
 #   scp post-flash-setup.sh root@<router-ip>:/tmp/
-#   ssh root@<router-ip> sh /tmp/post-flash-setup.sh
+#   ssh -t root@<router-ip> \
+#       SMB_SERVER=192.168.1.10 SMB_SHARE=Music SMB_USER=andrew SMB_PASS='...' \
+#       sh /tmp/post-flash-setup.sh
+#
+# If you omit SMB_PASS, the script runs the rest of the bring-up and leaves
+# /etc/smbcredentials and /etc/fstab untouched.
 #
 set -e
 
 # ---- SMB library -----------------------------------------------------------
-SMB_SERVER="192.168.1.10"      # NAS / PC address
-SMB_SHARE="Music"              # share name
-SMB_USER="USER"
-SMB_PASS="CHANGE_ME"           # <-- set this
+SMB_SERVER="${SMB_SERVER:-192.168.1.10}"   # NAS / PC address
+SMB_SHARE="${SMB_SHARE:-Music}"            # share name
+SMB_USER="${SMB_USER:-USER}"
+SMB_PASS="${SMB_PASS:-}"                   # never hardcode this
 MOUNT_POINT="/mnt/music"
 # ---------------------------------------------------------------------------
 
@@ -29,7 +34,7 @@ chown -R mpd:mpd /etc/mpd 2>/dev/null || true
 chown -R mympd:mympd /etc/mympd 2>/dev/null || true
 
 echo ">> SMB mount"
-if [ -n "$SMB_SERVER" ] && [ "$SMB_PASS" != "CHANGE_ME" ]; then
+if [ -n "$SMB_SERVER" ] && [ -n "$SMB_PASS" ]; then
 	printf 'username=%s\npassword=%s\n' "$SMB_USER" "$SMB_PASS" > /etc/smbcredentials
 	chmod 600 /etc/smbcredentials
 	MPD_UID_N=$(id -u mpd)
@@ -38,8 +43,8 @@ if [ -n "$SMB_SERVER" ] && [ "$SMB_PASS" != "CHANGE_ME" ]; then
 		echo "//$SMB_SERVER/$SMB_SHARE $MOUNT_POINT cifs credentials=/etc/smbcredentials,vers=3.0,iocharset=utf8,uid=$MPD_UID_N,gid=$MPD_GID_N,actimeo=60,ro 0 0" >> /etc/fstab
 	mount -a || echo "WARNING: SMB mount failed - check server/share/credentials"
 else
-	echo "NOTE: SMB_PASS is unset (CHANGE_ME); leaving /etc/smbcredentials and"
-	echo "      /etc/fstab untouched."
+	echo "NOTE: SMB_PASS is unset; leaving /etc/smbcredentials and /etc/fstab"
+	echo "      untouched. Re-run with SMB_PASS='...' to mount the library."
 fi
 /etc/init.d/fstab enable 2>/dev/null || true
 

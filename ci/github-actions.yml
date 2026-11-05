@@ -1,22 +1,51 @@
+# CI for this repository.
+#
+# GitHub only runs workflows from `.github/workflows/`, so this file does nothing
+# where it is. It lives here because the commit that added it could not push to
+# `.github/workflows/` — the token lacked the `workflow` scope. To enable CI,
+# copy this file to `.github/workflows/ci.yml` through the GitHub web UI, or push
+# it with a token that has the `workflow` scope.
+#
+# The same checks run locally; the shellcheck step below is the exact command.
+
 name: ci
-on: [push, pull_request]
+
+on:
+  push:
+  pull_request:
+
+# Least privilege: this workflow only reads the repository.
+permissions:
+  contents: read
+
 jobs:
   checks:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      # Pinned to an immutable commit rather than a mutable tag. Bump it
+      # deliberately; Dependabot can propose the update and rewrite the pin.
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4
+
+      # SC2034/SC3043 are OpenWrt rc.common conventions (START, USE_PROCD and
+      # busybox `local`), not defects; SC1091 is the sourced /etc/openwrt_release.
       - name: shellcheck
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y -qq shellcheck
-          shellcheck post-flash-setup.sh verify.sh build.sh
+          shellcheck -s sh -S warning -e SC2034,SC3043,SC1091 \
+            build.sh verify.sh post-flash-setup.sh qualify.sh \
+            ovl/etc/rc.local ovl/etc/init.d/mpd ovl/etc/init.d/mympd \
+            ovl/etc/uci-defaults/98-mympd-user ovl/etc/uci-defaults/99-lan-dhcp
+
       - name: benchmark builds and runs
         run: |
           cc -O2 -pthread -o /tmp/bench bench/bench.c
           /tmp/bench cpu 1
+
       - name: repository checks
         run: ./verify.sh
+
       - name: links
-        uses: lycheeverse/lychee-action@v2
+        uses: lycheeverse/lychee-action@e7477775783ea5526144ba13e8db5eec57747ce8  # v2
         with:
           args: --no-progress --offline README.md docs/*.md
