@@ -4,6 +4,10 @@ How this project was approached end to end: requirements, platform validation,
 architecture decisions, the build/debug loop, verification, and publication.
 Written as a reusable playbook rather than a changelog.
 
+The build sequence below is the 24.10.8 run. The image now ships on **25.12.6**
+(`apk`, kernel 6.12, gcc 14); [`docs/25.12-REBASE.md`](docs/25.12-REBASE.md)
+records what changed in the rebase, and the lessons here carried over unchanged.
+
 ---
 
 ## 1. Requirements capture
@@ -196,6 +200,9 @@ Every artifact was checked before being handed over:
 
 ## 14. Collaboration analysis
 
+*This section addresses the person who commissioned the work. If you are reading
+this repository, read "you" as "the requester".*
+
 An honest look at how the work was commissioned and steered: what information was
 supplied, when, and whether it was specific enough.
 
@@ -233,7 +240,7 @@ supplied, when, and whether it was specific enough.
 | Web UI expected (Volumio replacement) | myMPD cross-compile (~45 min) + image rebuild | Yes — "what UI?" |
 | Publication requirements | No rework; done at the end | — |
 
-Estimated **30–60 minutes** of the initial 2 h 44 m build phase was attributable to these late
+Estimated **30–60 minutes** of the initial 2 h 15 m build phase was attributable to these late
 constraints. Most of the elapsed time went to genuine engineering: the SDK
 config fight, the manual cross-builds, and verification — not to requirement churn.
 
@@ -320,14 +327,15 @@ A third, subtler issue: the `mympd` user was created with uid 89, colliding with
 
 ## 17. Optimisation pass
 
-The appliance was already lean — **1.2 MB of 96 MB overlay**, 32 MB RAM used,
-~6 % CPU — so debloating was about correctness and noise, not resources.
+The appliance was already lean — **1.2 MB of 96 MB overlay** at the time (≈2.5 MB
+after the 25.12 rebase), 32 MB RAM used, ~6 % CPU — so debloating was about
+correctness and noise, not resources.
 
 Applied:
 
 - disabled `packet_steering` (failed at every boot), `cron` (no jobs),
   `gpio_switch` (no config)
-- myMPD `loglevel` 5→3; MPD `log_level "error"`
+- myMPD `loglevel` 5→4; MPD `log_level "error"`
 - CIFS `actimeo=1`→`60`
 
 Deliberately **not** removed: `block-mount`/`fstools` (fstab init), `libiwinfo`/

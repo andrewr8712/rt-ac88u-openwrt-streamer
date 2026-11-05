@@ -29,9 +29,25 @@ cat /proc/asound/cards
 
 - Device must be `hw:0,0` in `/etc/mpd.conf` (no `plughw`, no `default`).
 - If the DAC appears as card 1, adjust the device.
-- "Failed to open audio device" with a sample-rate error is expected when the
-  DAC does not support that rate: this MPD build has **no resampling** support,
-  by design (bit-transparent; no resampling). Supported rates on the DX5 II are broad (44.1–768 kHz).
+- "Failed to open audio device" with a sample-rate error is expected when the DAC
+  does not support that rate: this MPD build has **no resampling** support by
+  design, so unsupported formats fail rather than being converted. The DX5 II
+  accepts 44.1–768 kHz PCM.
+
+## The DAC keeps disconnecting
+
+`dmesg` shows `error -71`, repeated disconnect/re-enumeration, or "attempt power
+cycle". That is a physical-layer symptom, not an ALSA or MPD fault.
+
+```sh
+dmesg | grep -i -E 'usb|error -71' | tail -20
+dmesg | grep -c 'USB disconnect'
+```
+
+- Use the **front USB 3.0** port, direct, without a hub; the rear USB 2.0 port
+  produced `error -71` on this unit.
+- Try another cable before touching any configuration.
+- After the change the disconnect count should stay at 0 over a long playback run.
 
 ## DSD files are silent or converted
 

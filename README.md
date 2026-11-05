@@ -40,12 +40,28 @@ Wi‑Fi stack (`wpad`, `kmod-brcmfmac`, 4366 firmware, `iwinfo`).
 `/usr/bin/mpd` is a custom **DSD-enabled** build overlaid on `mpd-mini`;
 `/usr/bin/mympd` is a custom myMPD build (assets embedded).
 
+The full installed set — 167 packages — is in
+[`manifests/openwrt-25.12.6-bcm53xx-generic-asus_rt-ac88u.manifest`](manifests/openwrt-25.12.6-bcm53xx-generic-asus_rt-ac88u.manifest).
+
 ## Flash
 
 1. Power off, hold **Reset**, power on until the power LED blinks slowly.
 2. PC at `192.168.1.2/24`; open `http://192.168.1.1`.
 3. Reset NVRAM, upload the `.trx` (or use ASUS Firmware Restoration).
 4. Reboot.
+
+### Upgrade an existing install
+
+On 25.12, `sysupgrade` can ignore `/etc/sysupgrade.conf` and drop the files it
+lists. Back up the settings you cannot regenerate before upgrading:
+
+```sh
+tar czf /tmp/pre-upgrade.tgz /etc /etc/mpd
+```
+
+After the reboot, compare `/etc/config`, `/etc/fstab`,
+`/root/.ssh/authorized_keys` and `/etc/mpd` against the backup and restore
+whatever is missing, then re-add the keep list to `/etc/sysupgrade.conf`.
 
 ## First access
 
@@ -67,13 +83,19 @@ Set a root password immediately: `passwd`.
 
 ## Configure everything
 
-Edit the SMB settings at the top of `post-flash-setup.sh` (`SMB_SERVER`,
-`SMB_SHARE`, `SMB_USER`, `SMB_PASS`), then:
+`post-flash-setup.sh` reads the SMB settings from the environment, so no
+password is stored in the file. Copy it over and run it with your share's
+values:
 
 ```sh
 scp post-flash-setup.sh root@<ip>:/tmp/
-ssh root@<ip> sh /tmp/post-flash-setup.sh
+ssh -t root@<ip> \
+    SMB_SERVER=192.168.1.10 SMB_SHARE=Music SMB_USER=andrew SMB_PASS='...' \
+    sh /tmp/post-flash-setup.sh
 ```
+
+Omit `SMB_PASS` to run the bring-up without touching `/etc/fstab` or the
+credentials file.
 
 The script is idempotent and performs the bring-up steps that are easy to miss:
 
@@ -91,9 +113,9 @@ The script is idempotent and performs the bring-up steps that are easy to miss:
 | myMPD `loglevel=4`, MPD `log_level "error"` | warnings + errors retained (3 = errors only) |
 | `actimeo=60` on the CIFS mount | far fewer SMB metadata round-trips while browsing |
 
-Then open `http://<ip>:8080` (myMPD) or `http://<ip>/` (LuCI). myMPD needs
-**Music directory** is pre-set to `/mnt/music` by the script (Autodetect only
-works over a Unix socket); verify it on the myMPD MPD-connection page.
+Then open `http://<ip>:8080` (myMPD) or `http://<ip>/` (LuCI). The script presets
+myMPD's **Music directory** to `/mnt/music` (Autodetect only works over a Unix
+socket); verify it on the myMPD MPD-connection page.
 
 ### Manual SMB mount (if you skip the script)
 

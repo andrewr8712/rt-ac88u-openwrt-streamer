@@ -6,10 +6,10 @@
 |---|---|
 | SoC | Broadcom BCM4709C0 — dual-core ARM Cortex-A9 @ 1.4 GHz |
 | RAM | 512 MB |
-| Flash | 128 MB NAND (SLC) — ~96 MB usable overlay after flashing (UBIFS reserves the rest) |
+| Flash | 128 MB NAND — ~96 MB usable overlay after flashing (UBIFS reserves the rest) |
 | USB | 1× USB 3.0 + 1× USB 2.0, both host mode |
 | Ethernet | 8× GbE (BCM53012 switch + Realtek RTL8365MB for LAN5–8) |
-| Wi-Fi | 2× BCM4366 (2.4/5 GHz) — **not usable** under OpenWrt |
+| Wi-Fi | 2× BCM4366C0 (2.4/5 GHz) — **not usable** under OpenWrt |
 | Serial | 115200 8N1, 3.3 V, internal header |
 
 ### Wi-Fi
@@ -39,10 +39,11 @@ Because it is UAC2 class-compliant it works with the kernel's `snd-usb-audio`
 driver without vendor drivers. With no other sound card present it enumerates as
 ALSA **card 0**, so MPD's output is `device "hw:0,0"`.
 
+Both router USB ports are host ports, and USB 2.0 bandwidth is sufficient for
+UAC2. On this unit the **rear USB 2.0** port produced `error -71` re-enumeration;
+the **front USB 3.0** port was stable. See
+[`TROUBLESHOOTING.md`](TROUBLESHOOTING.md) if the DAC disconnects.
+
 `mixer_type "none"` is used: MPD does not touch the DAC's mixer; use the DX5 II's
 own volume control. For strict bit-transparent output, run the DAC at 0 dB / fixed
 volume and attenuate downstream.
-
-Both ports are USB host ports and USB 2.0 bandwidth is sufficient for UAC2.
-On this unit, however, the **rear USB 2.0** port produced `error -71`
-re-enumeration; the **front USB 3.0** port was stable.

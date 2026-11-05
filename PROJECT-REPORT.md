@@ -1,7 +1,7 @@
 # RT-AC88U OpenWrt Music Streamer — Project Report
 
-**Date:** 30 October 2026 · **Status:** Delivered, deployed and validated on hardware
-**Session:** `session-ae0964a9`
+**Date:** 30 October 2026 (v2.0 rebase 31 October) · **Status:** Delivered, deployed and validated on hardware
+**Release:** v2.0 — OpenWrt 25.12.6
 
 ---
 
@@ -16,9 +16,9 @@
 | Total API cost | **$1.48 USD** |
 | Final image | 13 MB, SHA256 `612fe897…a8a9fd` |
 | Live library | 1,965 songs / 135 albums / 108 DSD files |
-| Deliverables | flashable image, GitHub repo, v1.0 release, baseline benchmarks |
+| Deliverables | flashable image, GitHub repo, v2.0 release, baseline benchmarks |
 
-The project took ~2 h 45 m to produce a release candidate, then another ~7 h of
+The project took ~2 h 15 m to produce a release candidate, then another ~7 h of
 hardware bring-up, debugging, persistence hardening, tuning and benchmarking on
 the real router.
 
@@ -119,7 +119,7 @@ These only surfaced on real hardware; all are now in `post-flash-setup.sh`.
 
 ## 5. Measured performance
 
-### Audio path (10-minute playback test)
+### Audio path (9 m 49 s playback test)
 
 | Source | ALSA `hw_params` | CPU avg / max |
 |---|---|---|
@@ -137,14 +137,14 @@ Overall 5.85 % average CPU, 13.3 % peak, zero USB disconnects, no xruns.
 
 | Test | RT-AC88U |
 |---|---|
-| Integer MAC chain | 99.9 Mops/s (1 thread) / 199.8 (2) |
-| Double dependent chain | 15.5 / 31.0 Mops/s |
-| Memory read / write / copy | 0.43 / 1.84 / 0.36 GB/s |
-| Memory latency 4 K→32 M | 6.6 → 277 ns |
-| UBIFS write / read | 51.4 / 88.3 MB/s |
-| tmpfs write / read | 307.4 / 396.2 MB/s |
-| CIFS cold read | 13.0 MB/s (server-dependent) |
-| CPU temp idle → after | 72.7 → 73.8 °C |
+| Integer MAC chain | 99.90 Mops/s (1 thread) / 199.30 (2) |
+| Double dependent chain | 15.53 / 31.04 Mops/s |
+| Memory read / write / copy | 0.43 / 1.84 / 0.34 GB/s |
+| Memory latency 4 KB→32 MB | 6.09 → 273.70 ns |
+| UBIFS write / read | 51.78 / 89.37 MB/s |
+| tmpfs write / read | 306.20 / 393.42 MB/s |
+| CIFS cold read | 11.06 MB/s (server-dependent) |
+| CPU temp idle → after | 70.5 → 71.1 °C |
 
 Full methodology and comparison guidance: [`BENCHMARKS.md`](BENCHMARKS.md).
 
@@ -155,12 +155,12 @@ Full methodology and comparison guidance: [`BENCHMARKS.md`](BENCHMARKS.md).
 | Change | Effect |
 |---|---|
 | Disabled `packet_steering`, `cron`, `gpio_switch` | removes a service that failed at every boot; no functional loss |
-| myMPD `loglevel` 5→3, MPD `log_level "error"` | quieter logs, errors still recorded |
+| myMPD `loglevel` 5→4, MPD `log_level "error"` | quieter logs; warnings and errors still recorded (3 is errors only) |
 | CIFS `actimeo=60` | fewer SMB metadata round-trips |
 | Kept USB-storage/fs stack | left intact; would only save ~1.9 MB on a 96 MB overlay |
 
-Package removal was deliberately not pursued: overlay usage is ~1.2 MB of 96 MB,
-so debloating would be cosmetic rather than necessary.
+Package removal was deliberately not pursued: overlay usage is ~2.5 MB of 96 MB in
+the 25.12.6 image, so debloating would be cosmetic rather than necessary.
 
 ---
 

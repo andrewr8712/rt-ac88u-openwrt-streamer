@@ -29,7 +29,7 @@ Keep:
 - `kmod-sound-core`, `kmod-usb-audio`, `alsa-utils`, `usbutils`
 - `mpd-mini` (the custom MPD binary replaces it), `upmpdcli`
 - `kmod-fs-cifs`, `cifsmount` (SMB library)
-- `libopenssl`, `libpcre2` (myMPD runtime)
+- `libopenssl3`, `libpcre2` (myMPD runtime)
 - LuCI modules, `uhttpd`
 
 Remove or change:
@@ -116,7 +116,7 @@ Run on the candidate device:
 
 ```sh
 ./qualify.sh                 # board, ALSA, USB, benchmark summary
-printf 'stats\nclose\n' | nc 127.0.0.1 6600
+printf 'status\nclose\n' | nc 127.0.0.1 6600
 cat /proc/asound/card0/pcm0p/sub0/hw_params
 dmesg | grep -c 'USB disconnect'
 ```

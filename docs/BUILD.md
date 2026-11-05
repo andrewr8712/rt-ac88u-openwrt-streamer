@@ -25,7 +25,9 @@ openwrt-imagebuilder-25.12.6-bcm53xx-generic.Linux-x86_64.tar.zst
 tar --zstd -xf openwrt-imagebuilder-25.12.6-bcm53xx-generic.Linux-x86_64.tar.zst
 cd openwrt-imagebuilder-25.12.6-bcm53xx-generic.Linux-x86_64
 
-make image \
+# The 25.12 Image Builder uses apk, which must own the files it writes. As a
+# normal user, run the build inside a private uid-0 namespace:
+unshare -r make image \
   PROFILE="asus_rt-ac88u" \
   PACKAGES="kmod-sound-core kmod-usb-audio alsa-utils usbutils mpd-mini upmpdcli \
             block-mount kmod-usb-storage kmod-fs-ext4 kmod-fs-vfat kmod-fs-exfat \
@@ -47,7 +49,7 @@ and first-boot scripts.
 The stock `mpd-mini` package is built with `-Ddsd=false`, so DSF/DFF cannot be
 decoded. The fix is a rebuild with `-Ddsd=true`.
 
-1. Clone/install the `packages` feed for 24.10 into an OpenWrt SDK.
+1. Clone/install the `packages` feed for 25.12 into an OpenWrt SDK.
 2. Patch `feeds/packages/sound/mpd/Makefile`:
    - `PKG_RELEASE:=3` (so the custom build wins over the repo version)
    - `-Ddsd=false` → `-Ddsd=true`
@@ -76,7 +78,7 @@ Disabling `zeroconf`/`dbus`/`mms`/`soxr`/`yajl` is important: with them left on
 
 ## 3. myMPD
 
-myMPD is not packaged in the 24.10 feeds, so it is cross-compiled with cmake.
+myMPD is not packaged in the 25.12 feeds, so it is cross-compiled with cmake.
 
 Build its two missing dependencies into the SDK staging dir first:
 
@@ -104,7 +106,7 @@ Notes:
 - `MYMPD_EMBEDDED_LIBMPDCLIENT=OFF` lets cmake notice the staging libmpdclient is
   too old (2.22 < 2.26) and fall back to the bundled copy **with** the required
   compile define. Forcing `ON` skips that define and mixes headers.
-- `-Werror` in `CMakeLists.txt` breaks the vendored mongoose build on GCC 13;
+- `-Werror` in `CMakeLists.txt` breaks the vendored mongoose build on GCC 14;
   remove that flag.
 - `MYMPD_ENABLE_LIBID3TAG`/`FLAC` are optional myMPD-side file parsers. MPD still
   decodes FLAC and serves tags/artwork, so disabling them does not affect
@@ -118,13 +120,22 @@ Notes:
 |---|---|
 | `usr/bin/mpd` | DSD-enabled MPD binary |
 | `usr/bin/mympd` | myMPD binary (assets embedded) |
+| `etc/mpd.conf` | MPD config: `hw:0,0`, `mixer_type "none"`, `dop "yes"`, `/etc/mpd` state |
+| `etc/init.d/mpd` | MPD init with `GROUP="audio"` |
 | `etc/init.d/mympd` | procd service, runs as `mympd` |
+| `etc/rc.local` | waits on `/proc/mounts`, runs `mount -a`, restarts MPD |
 | `etc/uci-defaults/98-mympd-user` | creates the `mympd` user/group |
 | `etc/uci-defaults/99-lan-dhcp` | first boot: LAN becomes a DHCP client |
+| `mnt/music/.keep` | pre-creates the mount point |
 
 Pass `FILES=/path/to/ovl` to the image builder as shown above.
 
 ## 5. Result
 
 `bin/targets/bcm53xx/generic/openwrt-25.12.6-bcm53xx-generic-asus_rt-ac88u-squashfs.trx`
-(~14 MB) — published as a GitHub Release asset.
+(13,369,344 bytes) — published as a GitHub Release asset.
+
+The exact installed set is captured in
+[`manifests/openwrt-25.12.6-bcm53xx-generic-asus_rt-ac88u.manifest`](../manifests/openwrt-25.12.6-bcm53xx-generic-asus_rt-ac88u.manifest)
+(167 packages, read back from the device with `apk info -v`). Diff your build
+against it when a package silently changes.
