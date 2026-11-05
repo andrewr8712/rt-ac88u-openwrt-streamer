@@ -1,75 +1,49 @@
-# Custom OpenWrt image — ASUS RT-AC88U music streamer
+# Custom OpenWrt image for the ASUS RT-AC88U
 
-OpenWrt 25.12.6 for the **ASUS RT-AC88U**, repurposed as a wired network music
-streamer feeding a USB DAC (Topping DX5 II). Music lives on an SMB share; state
-survives reboots.
+OpenWrt 25.12.6, set up as a wired network music streamer feeding a USB DAC
+(Topping DX5 II). Music stays on an SMB share; the library, queue and settings
+survive reboots. This image is built for that router and that DAC. For other
+hardware, read [Porting](docs/PORTING.md) first.
 
-| | |
-|---|---|
-| Image | `openwrt-25.12.6-bcm53xx-generic-asus_rt-ac88u-squashfs.trx` |
-| Size | ~13 MB |
-| Player | custom `mpd` 0.23.16 — DSD (DSF/DFF) + FLAC/AAC/MP3/OGG, ALSA `hw:0,0` |
-| Music UI | **myMPD** — `http://<ip>:8080` |
-| Admin UI | **LuCI** — `http://<ip>/` |
-| UPnP | `upmpdcli` (DLNA/UPnP AV + OpenHome renderer) |
-| Library | SMB/CIFS client (`kmod-fs-cifs` + `cifsmount`) |
-| Persistence | MPD DB in `/etc/mpd`, myMPD state in `/etc/mympd` (overlay, not tmpfs) |
-| Measured | 16/44.1–24/192 PCM; native DSD128/512 (`DSD_U32_BE`); see [Measured performance](#measured-performance-dop-baseline), [Native DSD](#native-dsd) and the [load test](docs/STABILITY-2026-11-05.md) |
+## Quick start
 
-## Download
+### 1. Download
 
 [v2.1 release](https://github.com/andrewr8712/rt-ac88u-openwrt-streamer/releases/tag/v2.1)
 
-`openwrt-25.12.6-bcm53xx-generic-asus_rt-ac88u-squashfs.trx` — 13,369,344 bytes
-SHA256 `2b403fc7eecce470e5a44e06e92589b48149d46d6611390e9599ccb3a69ec628`
+File: `openwrt-25.12.6-bcm53xx-generic-asus_rt-ac88u-squashfs.trx`
+Size: 13,369,344 bytes
+SHA256: `2b403fc7eecce470e5a44e06e92589b48149d46d6611390e9599ccb3a69ec628`
 
-v2.1 defaults to native DSD (`dop "no"`); see [Native DSD](#native-dsd).
+v2.1 uses native DSD by default (`dop "no"`); see [DSD](#dsd). Verify the
+download with `sha256sum FILE` before flashing.
 
-Verify with `sha256sum <file>` before flashing.
-
-## What is included
-
-`kmod-sound-core kmod-usb-audio alsa-utils usbutils mpd-mini upmpdcli
-kmod-fs-cifs cifsmount libopenssl3 libpcre2`
-
-LuCI (modules, without the firewall/PPP apps): `luci-base luci-mod-system
-luci-mod-network luci-mod-status luci-mod-dashboard luci-theme-bootstrap
-luci-app-package-manager uhttpd`
-
-Not installed: `firewall4`, `nftables`, `dnsmasq`, `odhcpd/odhcp6c`, `ppp`,
-Wi‑Fi stack (`wpad`, `kmod-brcmfmac`, 4366 firmware, `iwinfo`).
-
-`/usr/bin/mpd` is a custom **DSD-enabled** build overlaid on `mpd-mini`;
-`/usr/bin/mympd` is a custom myMPD build (assets embedded).
-
-The full installed set — 167 packages — is in
-[`manifests/openwrt-25.12.6-bcm53xx-generic-asus_rt-ac88u.manifest`](manifests/openwrt-25.12.6-bcm53xx-generic-asus_rt-ac88u.manifest).
-
-## Flash
+### 2. Flash
 
 1. Power off, hold **Reset**, power on until the power LED blinks slowly.
-2. PC at `192.168.1.2/24`; open `http://192.168.1.1`.
-3. Reset NVRAM, upload the `.trx` (or use ASUS Firmware Restoration).
+2. Put your PC at `192.168.1.2/24` and open `http://192.168.1.1`.
+3. Reset NVRAM, upload the `.trx`, or use the ASUS Firmware Restoration tool.
 4. Reboot.
 
-### Upgrade an existing install
+#### Upgrade an existing install
 
 On 25.12, `sysupgrade` can ignore `/etc/sysupgrade.conf` and drop the files it
-lists. Back up the settings you cannot regenerate before upgrading:
+lists. Back up what you cannot regenerate:
 
 ```sh
 tar czf /tmp/pre-upgrade.tgz /etc /etc/mpd
 ```
 
 After the reboot, compare `/etc/config`, `/etc/fstab`,
-`/root/.ssh/authorized_keys` and `/etc/mpd` against the backup and restore
-whatever is missing, then re-add the keep list to `/etc/sysupgrade.conf`.
+`/root/.ssh/authorized_keys` and `/etc/mpd` with the backup, restore what is
+missing, and re-add the keep list to `/etc/sysupgrade.conf`.
 
-## First access
+### 3. First access
 
-There is **no DHCP server** in the image. On first boot the LAN bridge is a
-**DHCP client**; plug a LAN port into your network and find the lease (hostname
-`OpenWrt`) in your main router. The WAN port is also a DHCP client.
+There is no DHCP server in the image. On first boot the LAN bridge is a DHCP
+client. Plug a LAN port into your network, find the lease (hostname `OpenWrt`)
+in your main router, then set a root password with `passwd`. The WAN port is
+also a DHCP client.
 
 To pin an address later:
 
@@ -81,45 +55,40 @@ uci commit network
 /etc/init.d/network restart
 ```
 
-Set a root password immediately: `passwd`.
-
-## Configure everything
+### 4. Point it at your music
 
 `post-flash-setup.sh` reads the SMB settings from the environment, so no
-password is stored in the file. Copy it over and run it with your share's
-values:
+password is stored in the file:
 
 ```sh
-scp post-flash-setup.sh root@<ip>:/tmp/
-ssh -t root@<ip> \
+scp post-flash-setup.sh root@IP_ADDRESS:/tmp/
+ssh -t root@IP_ADDRESS \
     SMB_SERVER=192.168.1.10 SMB_SHARE=Music SMB_USER=andrew SMB_PASS='...' \
     sh /tmp/post-flash-setup.sh
 ```
 
-Omit `SMB_PASS` to run the bring-up without touching `/etc/fstab` or the
-credentials file.
+Replace `IP_ADDRESS` with the router's address. Omit `SMB_PASS` to run the
+bring-up without touching `/etc/fstab` or the credentials file.
 
-The script is idempotent and performs the bring-up steps that are easy to miss:
+The script is idempotent and handles the bring-up steps that are easy to miss:
 
 | Step | Why |
 |---|---|
 | `GROUP="audio"` for MPD + `mpd` added to `audio` | `/dev/snd` is `root:audio 660`; otherwise playback fails |
-| MPD DB/state/playlists → `/etc/mpd` | `/var` is tmpfs — otherwise the DB is lost every boot |
-| myMPD workdir → `/etc/mympd` | otherwise music-directory/SSL settings reset every boot |
+| MPD DB/state/playlists → `/etc/mpd` | `/var` is tmpfs, so the DB would be lost every boot |
+| myMPD workdir → `/etc/mympd` | otherwise music-directory and SSL settings reset every boot |
 | myMPD uid 91 (not 89) | 89 collides with `upmpdcli` |
 | `ssl=false` in myMPD | avoids forced self-signed HTTPS on :8443 |
 | static `/etc/fstab` CIFS entry | UCI `fstab` entries are not mounted by `block mount` for network shares |
 | `/etc/rc.local` waits on `/proc/mounts` | `[ -d /mnt/music ]` is true even when unmounted |
-| `mpd-dirs` service (S92) | recreates/chowns persistent dirs before MPD starts |
+| `mpd-dirs` service (S92) | recreates and chowns persistent dirs before MPD starts |
 | `packet_steering`, `cron`, `gpio_switch` disabled | not needed here; `packet_steering` otherwise fails at every boot |
-| myMPD `loglevel=4`, MPD `log_level "error"` | warnings + errors retained (3 = errors only) |
+| myMPD `loglevel=4`, MPD `log_level "error"` | warnings and errors retained (3 is errors only) |
 | `actimeo=60` on the CIFS mount | far fewer SMB metadata round-trips while browsing |
 
-Then open `http://<ip>:8080` (myMPD) or `http://<ip>/` (LuCI). The script presets
-myMPD's **Music directory** to `/mnt/music` (Autodetect only works over a Unix
-socket); verify it on the myMPD MPD-connection page.
+#### Manual SMB mount
 
-### Manual SMB mount (if you skip the script)
+If you skip the script:
 
 ```sh
 mkdir -p /mnt/music
@@ -133,65 +102,79 @@ mount -a
 non-ASCII album names readable. Try `vers=3.1.1` or `2.1` if the server rejects
 `3.0`.
 
-## Persistence model
+### 5. Open the web UIs
 
-| Path | Content | Survives reboot |
-|---|---|---|
-| `/etc/mpd/tag_cache` | MPD database | ✅ (overlay) |
-| `/etc/mpd/state`, `/etc/mpd/playlists` | MPD state/playlists | ✅ |
-| `/etc/mympd/` | myMPD config, state, covers | ✅ |
-| `/var/cache/mympd` | regenerable caches | ❌ (tmpfs, intentional) |
-| `/mnt/music` | SMB mount | remounted at boot |
+- myMPD: `http://IP_ADDRESS:8080`; library, queue, search, playlists, artwork.
+  Installable as a PWA. Plain HTTP; SSL is off by default.
+- LuCI: `http://IP_ADDRESS/`; system, network, services, logs, packages.
 
-Boot order: `fstab` attempts the mount → `rc.local` waits for `/proc/mounts`,
-runs `mount -a`, restarts MPD/upmpdcli → MPD loads the persistent DB (no rescan).
+The script presets myMPD's music directory to `/mnt/music` (Autodetect only
+works over a Unix socket); verify it on the myMPD MPD-connection page.
 
-## Web UIs
+If a browser forces HTTPS, it has a cached redirect or HSTS entry; clear it for
+the IP (Chrome: `chrome://net-internals/#hsts`; Firefox: HTTPS-Only exception;
+or use a private window).
 
-- **myMPD** — `http://<ip>:8080`; library, queue, search, playlists, artwork.
-  Installable as a PWA. Serves plain HTTP; SSL is disabled by default.
-- **LuCI** — `http://<ip>/`; system, network, services, logs, packages.
+## DSD
 
-If a browser forces HTTPS, it has cached an old redirect or HSTS entry:
-clear it for the IP (Chrome: `chrome://net-internals/#hsts`; Firefox:
-HTTPS-Only exception; or test in a private window).
+The default output is native DSD (`dop "no"`): MPD opens the Topping's
+`DSD_U32_BE` altset (Interface 1, Altset 3), so the DSD bitstream reaches the
+DAC without PCM framing. Verified on 2026-11-05:
 
-## Phone control
+| Format | MPD reports | ALSA `hw_params` | Carrier |
+|---|---|---|---|
+| DSD128 | `dsd128:2` | `DSD_U32_BE` | 176400 Hz |
+| DSD512 | `dsd512:2` | `DSD_U32_BE` | 705600 Hz (2.0 GB Polly Gibbons test track) |
 
-- **myMPD PWA** — add to home screen.
-- **M.A.L.P.** (Android, MPD native) — MPD listens on all interfaces
-  (`bind_to_address "any"`), so point it at the router IP, port **6600**, no
+The streamer handles DSD64/128/256 (DoP baseline) and native DSD128/512. DSD64
+and DSD256 use the same native path but were not re-measured after the switch.
+
+DoP is still available with `dop "yes"`; it cannot carry DSD512, which would
+need a 1.536 MHz PCM carrier beyond the DAC's 768 kHz input limit.
+
+## Clients
+
+- Plinth: the Android controller this streamer was built with. It talks MPD
+  directly and keeps a cached library; see
+  [andrewr8712/plinth](https://github.com/andrewr8712/plinth).
+- myMPD PWA: add the web UI to your home screen.
+- M.A.L.P.: MPD-native Android client. Point it at the router IP, port 6600, no
   password. It browses MPD's database directly.
-- **BubbleUPnP / Kazoo / mconnect / Hi-Fi Cast** — UPnP control points; they see
-  the `upmpdcli` renderer. Without a UPnP media server they cannot browse the
-  SMB library (uprcl needs python3, not installed); use MPD-native apps or
-  myMPD for local browsing.
+- BubbleUPnP, Kazoo, mconnect, Hi-Fi Cast: UPnP control points. They see the
+  `upmpdcli` renderer. Without a UPnP media server they cannot browse the SMB
+  library (uprcl needs python3, not installed); use an MPD-native app or myMPD
+  for local browsing.
 
-MPD listens on all interfaces (there is no firewall in this image). On a trusted
-LAN that is fine; to restrict it, set `bind_to_address` to the router's LAN IP.
-MPD also supports `password "…@readwrite"` with all clients supplying it.
+MPD listens on all interfaces and there is no firewall in this image. On a
+trusted LAN that is fine. To restrict it, set `bind_to_address` to the router's
+LAN IP. MPD also supports `password "PASSWORD@readwrite"` with every client
+supplying it.
 
-## Bit-perfect path
+## Troubleshooting
 
-`device "hw:0,0"`, `mixer_type "none"`, no resampling (the build has no soxr or
-libsamplerate), no PulseAudio. PCM is passed through untouched. DSD uses native DSD by default (`dop "no"`):
-ALSA opens the DAC's `DSD_U32_BE` altset (Interface 1, Altset 3), so the DSD
-bitstream reaches the DAC without PCM framing. DoP remains available with
-`dop "yes"`, but cannot carry DSD512 here. Unsupported rates fail rather than
-being converted. For strict
-bit-transparent output keep the DAC at 0 dB / fixed volume.
+| Symptom | Check |
+|---|---|
+| `Failed to open ... hw:0,0` | `id mpd` must include `audio`; `ls -l /dev/snd`; USB churn in `dmesg` |
+| Library empty after reboot | `grep ' /mnt/music ' /proc/mounts`; if missing, `mount -a && /etc/init.d/mpd restart` |
+| myMPD settings reset | workdir must be `/etc/mympd` (`grep -- '-w' /etc/init.d/mympd`) |
+| MPD won't start | `logread \| grep mpd`, usually `/etc/mpd` permissions |
+| M.A.L.P. can't connect | `bind_to_address "any"`; `netstat -lntp \| grep 6600`; phone on the same subnet (no guest VLAN or AP isolation) |
+| `exception: No mixer` | Benign: a client tried to change volume with `mixer_type "none"`; use the DAC's knob |
+| USB disconnects in `dmesg` | Use the front USB 3.0 port, direct, no hub; the rear USB 2.0 port produced `error -71` |
+| HTTPS redirect | myMPD `ssl` must be `false`; clear the browser's HSTS entry |
 
-"Bit-perfect" here means bit-transparent by construction: no resampling, mixing
-or volume processing, and the negotiated rate/format was verified at the DAC. No
-null-test or bit-error measurement has been performed.
+See [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) for more.
 
-## Measured performance (DoP baseline)
+## Reference
+
+### Measured performance (DoP baseline)
 
 The table below is the DoP baseline from the 24.10 build, kept for comparison.
-The current image defaults to native DSD; see [Native DSD](#native-dsd).
+The current image defaults to native DSD; see [DSD](#dsd).
 
-Measured over **9 m 49 s** of continuous playback (40 samples at 15 s intervals; 24.10.8 baseline, DSD64 re-verified on 25.12.6)
-on the RT-AC88U — dual Cortex-A9 @ 1.4 GHz, 512 MB RAM.
+Measured over 9 m 49 s of continuous playback (40 samples at 15 s intervals;
+24.10.8 baseline, DSD64 re-verified on 25.12.6) on the RT-AC88U (dual Cortex-A9
+at 1.4 GHz, 512 MB RAM).
 
 | Source | MPD reports | ALSA `hw_params` | CPU avg / max |
 |---|---|---|---|
@@ -200,15 +183,16 @@ on the RT-AC88U — dual Cortex-A9 @ 1.4 GHz, 512 MB RAM.
 | 24/192 FLAC | `192000:24:2` | 192000 Hz | 7.7 % / 13.3 % |
 | DSD64 | `dsd64:2` | 176400 Hz (DoP) | 7.6 % / 10.6 % |
 | DSD128 | `dsd128:2` | 352800 Hz (DoP) | 6.5 % / 9.4 % |
-| DSD256 | `dsd256:2` | **705600 Hz (DoP)** | 11.6 % / 12.7 % |
+| DSD256 | `dsd256:2` | 705600 Hz (DoP) | 11.6 % / 12.7 % |
 
-- Overall CPU: **5.85 % average**, **13.3 % peak** (the peaks coincide with
-  format transitions, not steady-state decoding)
-- **0 USB disconnects**, no xruns or decode errors in `logread`
-- Every rate matched the source exactly — no resampling anywhere in the chain
-- DoP baseline: DSD256 over DoP works; DSD512 cannot be carried by DoP
+- Overall CPU: 5.85 % average, 13.3 % peak (the peaks coincide with format
+  transitions, not steady-state decoding).
+- 0 USB disconnects, and no xruns or decode errors in `logread`.
+- Every rate matched the source exactly; there is no resampling anywhere in the
+  chain.
+- DoP baseline: DSD256 over DoP works; DSD512 cannot be carried by DoP.
 
-Reproduce:
+To reproduce:
 
 ```sh
 printf 'status\nclose\n' | nc 127.0.0.1 6600   # state + audio format
@@ -216,99 +200,121 @@ cat /proc/asound/card0/pcm0p/sub0/hw_params     # what ALSA feeds the DAC
 dmesg | grep -c 'USB disconnect'                # link stability
 ```
 
-Raw CPU / memory / storage microbenchmarks (with the benchmark source and raw
-output) are in [BENCHMARKS.md](BENCHMARKS.md) and [`bench/`](bench/) — useful as a
-baseline when repeating this build on different hardware.
+Raw CPU, memory and storage numbers are in [BENCHMARKS.md](BENCHMARKS.md) and
+[`bench/`](bench/); use them as a baseline when repeating this build on other
+hardware.
 
-## Tested on
+### Load test
 
-- ASUS RT-AC88U (bcm4709c0, 2× Cortex-A9, 512 MB), OpenWrt 25.12.6
-- Topping DX5 II on the **front USB 3.0** port (rear USB 2.0 caused `error -71`)
-- SMB3 share on a separate PC; myMPD, LuCI and M.A.L.P. clients
-- 9 m 49 s continuous playback across PCM and DSD — see [BENCHMARKS.md](BENCHMARKS.md)
-- 62.5 min under full CPU and CIFS load on 2026-11-05 — see [docs/STABILITY-2026-11-05.md](docs/STABILITY-2026-11-05.md)
+A 62.5-minute load test on 2026-11-05 ran both cores saturated and a 2 GB CIFS
+read while the queue played. All 240 samples were in `play`: 0 stalls, 0
+pauses or stops, 0 MPD, USB, CIFS or ALSA errors, 16 clean track changes. Peak
+CPU 99.8 %, peak temperature 76.6 °C, memory available never below 311 MB. The
+report and raw data are in
+[docs/STABILITY-2026-11-05.md](docs/STABILITY-2026-11-05.md).
 
-## Security
+### Tested on
 
-- No firewall/NAT/DHCP server: the device is a LAN **client**. Keep it on a
+- ASUS RT-AC88U (bcm4709c0, 2× Cortex-A9, 512 MB), OpenWrt 25.12.6.
+- Topping DX5 II on the front USB 3.0 port; the rear USB 2.0 port caused
+  `error -71`.
+- SMB3 share on a separate PC; myMPD, LuCI and M.A.L.P. clients.
+- 9 m 49 s continuous playback across PCM and DSD; see
+  [BENCHMARKS.md](BENCHMARKS.md).
+- 62.5 min under full CPU and CIFS load; see
+  [docs/STABILITY-2026-11-05.md](docs/STABILITY-2026-11-05.md).
+
+### What is in the image
+
+The image includes MPD 0.23.16 (DSD-enabled), myMPD 26.1.1, LuCI, upmpdcli
+1.8.11 and the SMB/CIFS client. The package list is in
+[`build/packages.txt`](build/packages.txt); the installed set (167 packages) is
+in the
+[manifest](manifests/openwrt-25.12.6-bcm53xx-generic-asus_rt-ac88u.manifest).
+
+Not installed: `firewall4`, `nftables`, `dnsmasq`, `odhcpd`/`odhcp6c`, `ppp`,
+and the Wi-Fi stack (`wpad`, `kmod-brcmfmac`, the 4366 firmware, `iwinfo`).
+`/usr/bin/mpd` is a custom DSD-enabled build overlaid on `mpd-mini`;
+`/usr/bin/mympd` is a custom myMPD build with embedded assets.
+
+### Persistence
+
+| Path | Content | Survives reboot |
+|---|---|---|
+| `/etc/mpd/tag_cache` | MPD database | Yes (overlay) |
+| `/etc/mpd/state`, `/etc/mpd/playlists` | MPD state and playlists | Yes |
+| `/etc/mympd/` | myMPD config, state, covers | Yes |
+| `/var/cache/mympd` | regenerable caches | No (tmpfs, intentional) |
+| `/mnt/music` | SMB mount | remounted at boot |
+
+Boot order: `fstab` attempts the mount, `rc.local` waits for `/proc/mounts` and
+runs `mount -a`, then restarts MPD/upmpdcli, and MPD loads the persistent
+database without a rescan.
+
+### Bit-perfect path
+
+`device "hw:0,0"`, `mixer_type "none"`, no resampling (the build has no soxr or
+libsamplerate) and no PulseAudio. PCM passes through untouched. DSD uses native
+DSD by default (`dop "no"`), so the bitstream reaches the DAC without PCM
+framing. Unsupported rates fail rather than being converted. For strict
+bit-transparent output, keep the DAC at 0 dB or fixed volume.
+
+"Bit-perfect" here means bit-transparent by construction: no resampling, mixing
+or volume processing, and the negotiated rate and format were verified at the
+DAC. No null-test or bit-error measurement has been performed.
+
+### Security
+
+- No firewall, NAT or DHCP server: the device is a LAN client. Keep it on a
   trusted network.
 - MPD listens on port 6600 on all interfaces; anyone on the LAN can control
-  playback. Restrict with `bind_to_address` or an MPD `password` if needed.
-- myMPD and LuCI are plain HTTP (8080 and 80). Do not expose them to the internet.
+  playback. Restrict it with `bind_to_address` or an MPD `password` if needed.
+- myMPD and LuCI are plain HTTP (8080 and 80). Do not expose them to the
+  internet.
 - Set a root password (`passwd`) before connecting to a shared network.
 
-## Porting
+### Known limitations
 
-This image is specific to the RT-AC88U; the workflow is reusable. See
-[docs/PORTING.md](docs/PORTING.md) for the target, DAC, network and persistence
-changes, and run [`qualify.sh`](qualify.sh) on the candidate device to produce a
-compatibility report.
+- Wi-Fi is unusable (BCM4366); the device is wired only.
+- DSD is native by default; DoP is available with `dop "yes"`.
+- Codecs: FLAC, AAC, MP3, OGG, DSD and PCM; no ALAC, WMA or APE.
+- myMPD Lua scripting is disabled (no liblua in the image).
+- The device is a client only: no firewall, NAT, DHCP or DNS server.
 
-## Support boundary
+### Support boundary
 
-Provided as-is for this exact router + DAC combination. Other hardware needs the
-porting changes described in [docs/PORTING.md](docs/PORTING.md); no warranty, and
-test before relying on it.
+Provided as-is for this exact router and DAC combination. Other hardware needs
+the changes in [docs/PORTING.md](docs/PORTING.md); there is no warranty, so test
+before relying on it.
 
-A 62.5-minute load test on 2026-11-05 — both cores saturated and a 2 GB CIFS read
-while the queue played — is in [docs/STABILITY-2026-11-05.md](docs/STABILITY-2026-11-05.md):
-**240/240 samples in `play`**, 0 stalls, 0 pauses/stops, 0 MPD/USB/CIFS/ALSA errors,
-16 clean track changes; peak CPU 99.8 %, peak temperature 76.6 °C, memory available
-never below 311 MB.
+## Development
 
-## Native DSD
+### Build
 
-The default output uses `dop "no"`: MPD opens the Topping's `DSD_U32_BE` altset
-(Interface 1, Altset 3), so the DSD bitstream reaches the DAC without PCM framing.
-Verified on 2026-11-05:
+The pinned versions, the Image Builder command, the custom MPD and myMPD
+builds, and the overlay contents are in [docs/BUILD.md](docs/BUILD.md).
+`build.sh` automates them.
 
-| Format | MPD reports | ALSA `hw_params` | Carrier |
-|---|---|---|---|
-| DSD128 | `dsd128:2` | `DSD_U32_BE` | 176400 Hz |
-| DSD512 | `dsd512:2` | `DSD_U32_BE` | 705600 Hz (2.0 GB Polly Gibbons test track) |
+### Porting
 
-The streamer handles DSD64/128/256 (DoP baseline) and native DSD128/512; DSD64 and DSD256 use the same native path but were not re-measured after the switch.
-DoP is still available with `dop "yes"`; it cannot carry DSD512 here because that
-would need a 1.536 MHz PCM carrier, beyond the DAC's 768 kHz input limit.
+The image is specific to the RT-AC88U; the workflow and overlay layout are
+reusable. [docs/PORTING.md](docs/PORTING.md) lists the target, DAC, network and
+persistence changes. Run [`qualify.sh`](qualify.sh) on the candidate device for
+a compatibility report.
 
-## Known limitations
-
-- **Wi-Fi unusable** (BCM4366) — wired only.
-- **DSD:** native (`DSD_U32_BE`) by default; DoP available with `dop "yes"`.
-  DSD128 and DSD512 verified; DSD64/256 use the same native path.
-- **Codecs:** FLAC/AAC/MP3/OGG/DSD/PCM; no ALAC/WMA/APE.
-- **myMPD Lua scripting disabled** (no liblua in the image).
-- **Client device:** no firewall/NAT/DHCP/DNS.
-
-## Troubleshooting
-
-| Symptom | Check |
-|---|---|
-| `Failed to open ... hw:0,0` | `id mpd` must include `audio`; `ls -l /dev/snd`; USB churn in `dmesg` |
-| Library empty after reboot | `grep ' /mnt/music ' /proc/mounts`; if missing `mount -a && /etc/init.d/mpd restart` |
-| myMPD settings reset | workdir must be `/etc/mympd` (`grep -- '-w' /etc/init.d/mympd`) |
-| MPD won't start | `logread \| grep mpd` — usually `/etc/mpd` permissions |
-| M.A.L.P. can't connect | `bind_to_address "any"`; `netstat -lntp \| grep 6600`; phone on the same subnet (no guest VLAN / AP isolation) |
-| `exception: No mixer` | Benign — a client tried to change volume with `mixer_type "none"`; use the DAC's knob |
-| USB disconnects in `dmesg` | Use the **front USB 3.0** port, direct, no hub; the rear USB 2.0 port produced `error -71` |
-| HTTPS redirect | myMPD `ssl` must be `false`; clear browser HSTS |
-
-See `docs/TROUBLESHOOTING.md` for more.
-
-## License
-
-Original scripts, configuration and documentation are MIT licensed — see
-[LICENSE](LICENSE). The image bundles GPL-family components (OpenWrt, MPD,
-myMPD, upmpdcli); see [NOTICE](NOTICE) for versions, licences and sources, and
-[`patches/`](patches/) for modifications. If you reuse this work, keep the
-licence and notice files and link back to this repository.
-
-## Rebuild
+### Rebuild
 
 ```sh
 make image PROFILE="asus_rt-ac88u" PACKAGES="<list>" FILES="/path/to/ovl"
 ```
 
-`ovl/` supplies the custom binaries, `init.d/mympd`, and the first-boot
-`uci-defaults`. `docs/BUILD.md` documents the cross-build steps for MPD (DSD)
-and myMPD.
+`ovl/` supplies the custom binaries, `init.d/mympd` and the first-boot
+`uci-defaults`.
+
+## License
+
+Original scripts, configuration and documentation are MIT licensed; see
+[LICENSE](LICENSE). The image bundles GPL-family components (OpenWrt, MPD,
+myMPD, upmpdcli); see [NOTICE](NOTICE) for versions, licenses and sources, and
+[`patches/`](patches/) for modifications. If you reuse this work, keep the
+license and notice files and link back to this repository.
