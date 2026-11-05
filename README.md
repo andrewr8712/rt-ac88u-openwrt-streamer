@@ -14,7 +14,7 @@ survives reboots.
 | UPnP | `upmpdcli` (DLNA/UPnP AV + OpenHome renderer) |
 | Library | SMB/CIFS client (`kmod-fs-cifs` + `cifsmount`) |
 | Persistence | MPD DB in `/etc/mpd`, myMPD state in `/etc/mympd` (overlay, not tmpfs) |
-| Measured | 16/44.1–24/192 PCM and DSD64/128/256 via DoP; 0 USB drops in the 9 m 49 s test (24.10 baseline; DSD64 re-verified on 25.12) |
+| Measured | 16/44.1–24/192 PCM; native DSD128/512 (`DSD_U32_BE`); 0 USB drops in the 9 m 49 s DoP baseline (24.10; DSD64 re-verified on 25.12) |
 
 ## Download
 
@@ -172,16 +172,18 @@ MPD also supports `password "…@readwrite"` with all clients supplying it.
 ## Bit-perfect path
 
 `device "hw:0,0"`, `mixer_type "none"`, no resampling (the build has no soxr or
-libsamplerate), no PulseAudio. PCM is passed through untouched; DSD uses DoP
-(DSD64 → 176.4 kHz, DSD128 → 352.8 kHz, DSD256 → 705.6 kHz — all measured, see
-below). Unsupported rates fail rather than being converted. For strict
+libsamplerate), no PulseAudio. PCM is passed through untouched. DSD uses native DSD by default (`dop "no"`):
+ALSA opens the DAC's `DSD_U32_BE` altset (Interface 1, Altset 3), so the DSD
+bitstream reaches the DAC without PCM framing. DoP remains available with
+`dop "yes"`, but cannot carry DSD512 here. Unsupported rates fail rather than
+being converted. For strict
 bit-transparent output keep the DAC at 0 dB / fixed volume.
 
 "Bit-perfect" here means bit-transparent by construction: no resampling, mixing
 or volume processing, and the negotiated rate/format was verified at the DAC. No
 null-test or bit-error measurement has been performed.
 
-## Measured performance
+## Measured performance (DoP baseline)
 
 Measured over **9 m 49 s** of continuous playback (40 samples at 15 s intervals; 24.10.8 baseline, DSD64 re-verified on 25.12.6)
 on the RT-AC88U — dual Cortex-A9 @ 1.4 GHz, 512 MB RAM.
@@ -199,7 +201,7 @@ on the RT-AC88U — dual Cortex-A9 @ 1.4 GHz, 512 MB RAM.
   format transitions, not steady-state decoding)
 - **0 USB disconnects**, no xruns or decode errors in `logread`
 - Every rate matched the source exactly — no resampling anywhere in the chain
-- DSD256 over DoP works; DSD512 would need native DSD
+- DoP baseline: DSD256 over DoP works; DSD512 cannot be carried by DoP
 
 Reproduce:
 
@@ -242,11 +244,26 @@ Provided as-is for this exact router + DAC combination. Other hardware needs the
 porting changes described in [docs/BUILD.md](docs/BUILD.md); no warranty, and
 test before relying on it.
 
+## Native DSD
+
+The default output uses `dop "no"`: MPD opens the Topping's `DSD_U32_BE` altset
+(Interface 1, Altset 3), so the DSD bitstream reaches the DAC without PCM framing.
+Verified on 2026-11-05:
+
+| Format | MPD reports | ALSA `hw_params` | Carrier |
+|---|---|---|---|
+| DSD128 | `dsd128:2` | `DSD_U32_BE` | 176400 Hz |
+| DSD512 | `dsd512:2` | `DSD_U32_BE` | 705600 Hz (2.0 GB Polly Gibbons test track) |
+
+DSD64 and DSD256 use the same native path but were not re-measured after the switch.
+DoP is still available with `dop "yes"`; it cannot carry DSD512 here because that
+would need a 1.536 MHz PCM carrier, beyond the DAC's 768 kHz input limit.
+
 ## Known limitations
 
 - **Wi-Fi unusable** (BCM4366) — wired only.
-- **DSD over DoP only** — DSD64/128/256 verified; DSD512 would need native DSD
-  (not enabled in this build).
+- **DSD:** native (`DSD_U32_BE`) by default; DoP available with `dop "yes"`.
+  DSD128 and DSD512 verified; DSD64/256 use the same native path.
 - **Codecs:** FLAC/AAC/MP3/OGG/DSD/PCM; no ALAC/WMA/APE.
 - **myMPD Lua scripting disabled** (no liblua in the image).
 - **Client device:** no firewall/NAT/DHCP/DNS.
