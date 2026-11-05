@@ -1,12 +1,7 @@
 # CI for this repository.
 #
-# GitHub only runs workflows from `.github/workflows/`, so this file does nothing
-# where it is. It lives here because the commit that added it could not push to
-# `.github/workflows/` — the token lacked the `workflow` scope. To enable CI,
-# copy this file to `.github/workflows/ci.yml` through the GitHub web UI, or push
-# it with a token that has the `workflow` scope.
-#
-# The same checks run locally; the shellcheck step below is the exact command.
+# The same checks run locally: the shellcheck step below is the exact command,
+# and ./verify.sh can be run from a clean checkout.
 
 name: ci
 
