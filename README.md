@@ -18,10 +18,12 @@ survives reboots.
 
 ## Download
 
-[v2.0 release](https://github.com/andrewr8712/rt-ac88u-openwrt-streamer/releases/tag/v2.0)
+[v2.1 release](https://github.com/andrewr8712/rt-ac88u-openwrt-streamer/releases/tag/v2.1)
 
 `openwrt-25.12.6-bcm53xx-generic-asus_rt-ac88u-squashfs.trx` — 13,369,344 bytes
-SHA256 `612fe89737d871e51d78966e6ce174d88e77be41ab84bd003e87528de5a8a9fd`
+SHA256 `2b403fc7eecce470e5a44e06e92589b48149d46d6611390e9599ccb3a69ec628`
+
+v2.1 defaults to native DSD (`dop "no"`); see [Native DSD](#native-dsd).
 
 Verify with `sha256sum <file>` before flashing.
 
