@@ -19,7 +19,7 @@ jobs:
     steps:
       # Pinned to an immutable commit rather than a mutable tag. Bump it
       # deliberately; Dependabot can propose the update and rewrite the pin.
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
 
       # SC2034/SC3043 are OpenWrt rc.common conventions (START, USE_PROCD and
       # busybox `local`), not defects; SC1091 is the sourced /etc/openwrt_release.
